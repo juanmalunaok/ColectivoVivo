@@ -1,0 +1,16 @@
+{
+  "_comment": "Reglas para Firebase Realtime Database — pegar en la consola de Firebase",
+  "rules": {
+    "activeTrips": {
+      ".read": "auth != null",
+      "$tripId": {
+        ".write": "auth != null && (data.child('userId').val() === auth.uid || !data.exists())",
+        ".validate": "newData.hasChildren(['userId','lineNumber','branchId','branchName','lat','lng','timestamp','reports','isVisible'])",
+        "lat":      { ".validate": "newData.isNumber() && newData.val() >= -90  && newData.val() <= 90" },
+        "lng":      { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" },
+        "reports":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "isVisible":{ ".validate": "newData.isBoolean()" }
+      }
+    }
+  }
+}

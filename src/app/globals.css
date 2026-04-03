@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Evita el scroll indeseado en mobile cuando el mapa ocupa el 100% */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#__next,
+main {
+  height: 100%;
+}
+
+/* Marcadores personalizados del mapa */
+.bus-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #2563eb;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.bus-marker:hover {
+  transform: scale(1.15);
+}
+
+.bus-marker.reported {
+  background-color: #9ca3af;
+}
+
+/* Ocultar controles por defecto de Google Maps que no necesitamos */
+.gm-style-cc,
+.gm-bundled-control {
+  display: none !important;
+}

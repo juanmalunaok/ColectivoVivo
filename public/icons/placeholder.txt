@@ -1,0 +1,6 @@
+Colocar aquí los archivos:
+  - icon-192.png  (192x192 px)
+  - icon-512.png  (512x512 px)
+
+Podés generarlos con https://realfavicongenerator.net/ o cualquier herramienta de iconos PWA.
+El diseño sugerido: círculo azul (#2563eb) con las letras "CV" en blanco, bold.

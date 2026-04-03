@@ -1,0 +1,33 @@
+{
+  "name": "ColectivoVivo",
+  "short_name": "ColectivoVivo",
+  "description": "Seguí colectivos de Buenos Aires en tiempo real",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "lang": "es-AR",
+  "categories": ["travel", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ver el mapa",
+      "url": "/",
+      "description": "Ver colectivos activos en el mapa"
+    }
+  ]
+}
