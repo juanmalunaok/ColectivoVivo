@@ -1,7 +1,15 @@
-import { initializeApp, getApps } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
-import { getDatabase } from 'firebase/database'
-import { getFirestore } from 'firebase/firestore'
+/**
+ * Firebase — inicialización segura para SSR.
+ *
+ * Durante el build / SSR (sin .env.local real), initializeApp lanza
+ * auth/invalid-api-key. Lo capturamos y exportamos stubs null-as-any
+ * para que el módulo pueda cargarse sin romper el servidor.
+ * En el browser (o en producción con vars reales) todo funciona normal.
+ */
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
+import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth'
+import { getDatabase, type Database } from 'firebase/database'
+import { getFirestore, type Firestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,10 +21,38 @@ const firebaseConfig = {
   appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Evita reinicializar la app en hot-reload de Next.js
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+interface FirebaseServices {
+  auth:          Auth
+  db:            Database
+  firestore:     Firestore
+  googleProvider: GoogleAuthProvider
+}
 
-export const auth     = getAuth(app)
-export const db       = getDatabase(app)   // Realtime Database (ubicaciones)
-export const firestore = getFirestore(app) // Firestore (usuarios, reportes)
-export const googleProvider = new GoogleAuthProvider()
+function initFirebase(): FirebaseServices {
+  try {
+    const app: FirebaseApp = getApps().length
+      ? getApps()[0]
+      : initializeApp(firebaseConfig)
+
+    return {
+      auth:          getAuth(app),
+      db:            getDatabase(app),
+      firestore:     getFirestore(app),
+      googleProvider: new GoogleAuthProvider(),
+    }
+  } catch {
+    // Durante SSR sin claves reales — los consumidores solo usan estos
+    // valores en useEffect / callbacks que no corren en el servidor
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    return {
+      auth:          null as any,
+      db:            null as any,
+      firestore:     null as any,
+      googleProvider: null as any,
+    }
+  }
+}
+
+const { auth, db, firestore, googleProvider } = initFirebase()
+
+export { auth, db, firestore, googleProvider }

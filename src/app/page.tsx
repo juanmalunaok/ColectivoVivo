@@ -1,7 +1,9 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useCallback } from 'react'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import { ProtectedRoute } from '@/components/UI/ProtectedRoute'
 import { Header } from '@/components/UI/Header'
 import { LineSelector } from '@/components/Trip/LineSelector'
@@ -14,7 +16,7 @@ import { useTrip } from '@/hooks/useTrip'
 import type { BusLine, Branch } from '@/types'
 
 // Importación dinámica del mapa para evitar SSR (usa APIs del browser)
-const MapView = dynamic(
+const MapView = dynamicImport(
   () => import('@/components/Map/MapView').then((m) => m.MapView),
   { ssr: false, loading: () => <div className="w-full h-full bg-gray-100 animate-pulse" /> },
 )
