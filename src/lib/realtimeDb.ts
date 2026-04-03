@@ -98,6 +98,7 @@ export async function reportTrip(tripId: string): Promise<void> {
 export function subscribeToActiveTrips(
   callback: (trips: ActiveTrip[]) => void,
 ): () => void {
+  if (!db) { callback([]); return () => {} }
   const tripsRef = ref(db, TRIPS_PATH)
 
   const listener = onValue(tripsRef, (snapshot) => {
@@ -124,6 +125,7 @@ export function subscribeToLineTrips(
   lineNumber: string,
   callback: (trips: ActiveTrip[]) => void,
 ): () => void {
+  if (!db) { callback([]); return () => {} }
   const tripsRef = ref(db, TRIPS_PATH)
   const lineQuery = query(tripsRef, orderByChild('lineNumber'), equalTo(lineNumber))
 

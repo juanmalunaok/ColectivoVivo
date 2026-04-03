@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Carga o crea el perfil del usuario en Firestore
   const syncAppUser = useCallback(async (firebaseUser: User) => {
+    if (!firestore) return
     const userRef = doc(firestore, 'users', firebaseUser.uid)
     const snap    = await getDoc(userRef)
 
@@ -50,6 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false)
+      return
+    }
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
       if (firebaseUser) {
