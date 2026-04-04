@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react'
 import type { TripState } from '@/types'
 
 interface Props {
-  trip:     TripState
-  speed:    number | null
-  geoError: string | null
-  onStop:   () => Promise<void>
+  trip:               TripState
+  speed:              number | null
+  geoError:           string | null
+  wakeLockActive?:    boolean
+  wakeLockSupported?: boolean
+  onStop:             () => Promise<void>
 }
 
-export function ActiveTripPanel({ trip, speed, geoError, onStop }: Props) {
+export function ActiveTripPanel({ trip, speed, geoError, wakeLockActive, wakeLockSupported, onStop }: Props) {
   const [elapsed,  setElapsed]  = useState(0)
   const [stopping, setStopping] = useState(false)
 
@@ -71,6 +73,28 @@ export function ActiveTripPanel({ trip, speed, geoError, onStop }: Props) {
               </div>
             )}
           </div>
+
+          {/* Indicador de pantalla activa */}
+          {wakeLockSupported ? (
+            <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
+              style={{
+                background: wakeLockActive ? 'rgba(34,197,94,0.08)' : 'rgba(251,191,36,0.08)',
+                color: wakeLockActive ? '#4ade80' : '#fbbf24',
+                border: `1px solid ${wakeLockActive ? 'rgba(34,197,94,0.2)' : 'rgba(251,191,36,0.2)'}`,
+              }}>
+              <span>{wakeLockActive ? '🔒' : '⚠️'}</span>
+              <span>
+                {wakeLockActive
+                  ? 'Pantalla activa — podés usar otras apps y el rastreo continúa'
+                  : 'Manteniendo pantalla activa...'}
+              </span>
+            </div>
+          ) : (
+            <div className="rounded-xl px-3 py-2 mb-3 text-xs"
+              style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+              Mantené la app abierta para que el rastreo funcione
+            </div>
+          )}
 
           {geoError && (
             <div className="rounded-xl px-3 py-2 mb-3 text-xs"

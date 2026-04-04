@@ -13,6 +13,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useActiveTrips } from '@/hooks/useActiveTrips'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useTrip } from '@/hooks/useTrip'
+import { useWakeLock } from '@/hooks/useWakeLock'
 import type { BusLine, Branch } from '@/types'
 
 const MapView = dynamicImport(
@@ -33,6 +34,7 @@ export default function HomePage() {
   const [followedTripId, setFollowedTripId] = useState<string | null>(null)
 
   const geoEnabled = flowStep === 'active'
+  const { active: wakeLockActive, supported: wakeLockSupported } = useWakeLock(geoEnabled)
   const { lat, lng, speed, error: geoError } = useGeolocation({
     enabled: geoEnabled,
     onUpdate: updateLocation,
@@ -143,6 +145,8 @@ export default function HomePage() {
             trip={trip}
             speed={speed}
             geoError={geoError}
+            wakeLockActive={wakeLockActive}
+            wakeLockSupported={wakeLockSupported}
             onStop={handleStopTrip}
           />
         )}
