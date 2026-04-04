@@ -15,13 +15,11 @@ import { useGeolocation } from '@/hooks/useGeolocation'
 import { useTrip } from '@/hooks/useTrip'
 import type { BusLine, Branch } from '@/types'
 
-// Importación dinámica del mapa para evitar SSR (usa APIs del browser)
 const MapView = dynamicImport(
   () => import('@/components/Map/MapView').then((m) => m.MapView),
-  { ssr: false, loading: () => <div className="w-full h-full bg-gray-100 animate-pulse" /> },
+  { ssr: false, loading: () => <div className="w-full h-full" style={{ background: '#080810' }} /> },
 )
 
-// ─── Estado del flujo de activación ──────────────────────────────────────────
 type FlowStep = 'idle' | 'selectingLine' | 'confirmingConsent' | 'active'
 
 export default function HomePage() {
@@ -33,20 +31,14 @@ export default function HomePage() {
   const [pending,  setPending]  = useState<{ line: BusLine; branch: Branch } | null>(null)
   const [filterLine, setFilterLine] = useState<string | null>(null)
 
-  // GPS activo solo cuando hay viaje en curso
   const geoEnabled = flowStep === 'active'
-
   const { lat, lng, speed, error: geoError } = useGeolocation({
-    enabled:   geoEnabled,
-    onUpdate:  updateLocation,
+    enabled: geoEnabled,
+    onUpdate: updateLocation,
     intervalMs: 5000,
   })
 
-  // ── Flujo de activación ────────────────────────────────────────────────────
-
-  function openLineSelector() {
-    setFlowStep('selectingLine')
-  }
+  function openLineSelector() { setFlowStep('selectingLine') }
 
   function handleLineSelected(line: BusLine, branch: Branch) {
     setPending({ line, branch })
@@ -54,27 +46,14 @@ export default function HomePage() {
   }
 
   async function handleConsentAccepted() {
-    if (!pending || !lat || !lng) {
-      // Pedimos GPS primero antes de activar
-      // Si no tenemos posición inicial, activamos igualmente y el primer
-      // update del watchPosition lo colocará en el mapa
-      const fallback = { lat: -34.6037, lng: -58.3816 } // CABA centro como fallback
-      await startTrip(
-        pending!.line.number,
-        pending!.branch.id,
-        pending!.branch.name,
-        lat ?? fallback.lat,
-        lng ?? fallback.lng,
-      )
-    } else {
-      await startTrip(
-        pending!.line.number,
-        pending!.branch.id,
-        pending!.branch.name,
-        lat,
-        lng,
-      )
-    }
+    const fallback = { lat: -34.6037, lng: -58.3816 }
+    await startTrip(
+      pending!.line.number,
+      pending!.branch.id,
+      pending!.branch.name,
+      lat ?? fallback.lat,
+      lng ?? fallback.lng,
+    )
     setFlowStep('active')
     setPending(null)
   }
@@ -89,12 +68,14 @@ export default function HomePage() {
     setFlowStep('idle')
   }, [stopTrip])
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const activeCount = filterLine
+    ? trips.filter((t) => t.lineNumber === filterLine).length
+    : trips.length
 
   return (
     <ProtectedRoute>
-      <div className="relative w-full h-full">
-        {/* Mapa de fondo — ocupa toda la pantalla */}
+      <div className="relative w-full h-full" style={{ background: '#080810' }}>
+        {/* Mapa */}
         <MapView
           trips={trips}
           currentUserId={user?.uid}
@@ -103,7 +84,7 @@ export default function HomePage() {
           filterLine={filterLine}
         />
 
-        {/* Header superpuesto */}
+        {/* Header */}
         <Header
           filterLine={filterLine}
           onFilterClear={() => setFilterLine(null)}
@@ -111,7 +92,7 @@ export default function HomePage() {
           onStartTrip={openLineSelector}
         />
 
-        {/* Selector de línea (modal) */}
+        {/* Selector de línea */}
         {flowStep === 'selectingLine' && (
           <LineSelector
             onSelect={handleLineSelected}
@@ -119,7 +100,7 @@ export default function HomePage() {
           />
         )}
 
-        {/* Modal de consentimiento GPS */}
+        {/* Consentimiento GPS */}
         {flowStep === 'confirmingConsent' && pending && (
           <ConsentModal
             lineNumber={pending.line.number}
@@ -129,7 +110,7 @@ export default function HomePage() {
           />
         )}
 
-        {/* Panel de viaje activo */}
+        {/* Panel viaje activo */}
         {flowStep === 'active' && (
           <ActiveTripPanel
             trip={trip}
@@ -139,36 +120,62 @@ export default function HomePage() {
           />
         )}
 
-        {/* Buscador rápido de línea (observador) — solo cuando no hay viaje activo */}
+        {/* Barra inferior — estado idle */}
         {flowStep === 'idle' && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm pointer-events-auto">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 px-4 py-3">
-              <p className="text-xs text-gray-400 mb-1.5">¿Qué línea querés seguir?</p>
-              <div className="flex gap-2">
-                <input
-                  type="search"
-                  inputMode="numeric"
-                  placeholder="Número de línea (ej: 109)"
-                  value={filterLine ?? ''}
-                  onChange={(e) => setFilterLine(e.target.value || null)}
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {filterLine && (
-                  <button
-                    onClick={() => setFilterLine(null)}
-                    className="px-3 py-2 text-gray-400 hover:text-gray-600 text-sm"
-                  >
-                    ✕
-                  </button>
-                )}
+          <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-6 pointer-events-none">
+            <div className="rounded-3xl overflow-hidden pointer-events-auto shadow-2xl"
+              style={{ background: 'rgba(15,15,26,0.95)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
+
+              {/* Contador de colectivos */}
+              <div className="flex items-center gap-2 px-4 py-2.5"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <span className="relative flex h-1.5 w-1.5">
+                  {trips.length > 0 && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
+                      style={{ background: '#22c55e' }} />
+                  )}
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5"
+                    style={{ background: trips.length > 0 ? '#22c55e' : '#374151' }} />
+                </span>
+                <span className="text-xs" style={{ color: '#4b5563' }}>
+                  {activeCount > 0
+                    ? `${activeCount} colectivo${activeCount !== 1 ? 's' : ''} en el mapa${filterLine ? ` · Línea ${filterLine}` : ''}`
+                    : 'Sin colectivos activos en este momento'}
+                </span>
               </div>
-              {trips.length > 0 && (
-                <p className="text-xs text-gray-400 mt-1.5">
-                  {filterLine
-                    ? `${trips.filter((t) => t.lineNumber === filterLine).length} colectivo(s) de la línea ${filterLine} en el mapa`
-                    : `${trips.length} colectivo(s) activo(s) en el mapa`}
-                </p>
-              )}
+
+              <div className="px-4 py-3 flex items-center gap-2">
+                {/* Buscar línea */}
+                <div className="flex-1 relative">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: '#374151' }}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="search"
+                    inputMode="numeric"
+                    placeholder="Buscar línea..."
+                    value={filterLine ?? ''}
+                    onChange={(e) => setFilterLine(e.target.value || null)}
+                    className="w-full pl-8 pr-3 py-2 rounded-xl text-sm text-white placeholder-gray-600 outline-none"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                  />
+                </div>
+
+                {/* Botón principal */}
+                <button
+                  onClick={openLineSelector}
+                  className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-white whitespace-nowrap flex-shrink-0 transition"
+                  style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 4px 12px rgba(99,102,241,0.4)' }}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Estoy en un colectivo
+                </button>
+              </div>
             </div>
           </div>
         )}

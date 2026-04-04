@@ -5,7 +5,6 @@ import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-// ClientProviders se carga SIN SSR — Firebase nunca toca el servidor
 const ClientProviders = dynamic(
   () => import('@/components/UI/ClientProviders'),
   { ssr: false },
@@ -13,7 +12,7 @@ const ClientProviders = dynamic(
 
 export const metadata: Metadata = {
   title: 'ColectivoVivo',
-  description: 'Plataforma comunitaria de colectivos en tiempo real — Ciudad de Buenos Aires',
+  description: 'Colectivos de Buenos Aires en tiempo real — datos abiertos BA Data',
   manifest: '/manifest.json',
   icons: {
     icon:  '/icons/icon-192.png',
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable:       true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title:         'ColectivoVivo',
   },
 }
@@ -31,7 +30,7 @@ export const viewport: Viewport = {
   initialScale:         1,
   maximumScale:         1,
   userScalable:         false,
-  themeColor:           '#2563eb',
+  themeColor:           '#080810',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
