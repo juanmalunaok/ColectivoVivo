@@ -59,7 +59,7 @@ export function LineSelector({ onSelect, onCancel }: Props) {
               ref={inputRef}
               type="search"
               inputMode="numeric"
-              placeholder="Número de línea (ej: 60, 109, 500) v2..."
+              placeholder="Número de línea (ej: 60, 109, 500)..."
               value={query}
               onChange={(e) => { setQuery(e.target.value); setSelectedLine(null); setSelectedBranch(null) }}
               className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition"
