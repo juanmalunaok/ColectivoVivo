@@ -52,6 +52,16 @@ main {
   box-shadow: none;
 }
 
+.bus-marker.followed {
+  box-shadow: 0 0 0 2px #fff, 0 4px 16px rgba(99, 102, 241, 0.8), 0 0 0 5px rgba(99, 102, 241, 0.25);
+  animation: pulse-follow 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-follow {
+  0%, 100% { box-shadow: 0 0 0 2px #fff, 0 4px 16px rgba(99,102,241,0.8), 0 0 0 5px rgba(99,102,241,0.25); }
+  50%       { box-shadow: 0 0 0 2px #fff, 0 4px 24px rgba(99,102,241,1),   0 0 0 8px rgba(99,102,241,0.15); }
+}
+
 /* ── Ocultar UI de Google Maps ─────────────────────────────────── */
 .gm-style-cc,
 .gm-bundled-control,

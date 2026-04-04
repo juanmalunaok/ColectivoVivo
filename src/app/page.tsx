@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import dynamicImport from 'next/dynamic'
 import { ProtectedRoute } from '@/components/UI/ProtectedRoute'
 import { Header } from '@/components/UI/Header'
@@ -29,7 +29,8 @@ export default function HomePage() {
 
   const [flowStep, setFlowStep] = useState<FlowStep>('idle')
   const [pending,  setPending]  = useState<{ line: BusLine; branch: Branch } | null>(null)
-  const [filterLine, setFilterLine] = useState<string | null>(null)
+  const [filterLine,     setFilterLine]     = useState<string | null>(null)
+  const [followedTripId, setFollowedTripId] = useState<string | null>(null)
 
   const geoEnabled = flowStep === 'active'
   const { lat, lng, speed, error: geoError } = useGeolocation({
@@ -68,6 +69,13 @@ export default function HomePage() {
     setFlowStep('idle')
   }, [stopTrip])
 
+  // Auto-cancel follow when the trip disappears
+  useEffect(() => {
+    if (followedTripId && !trips.find((t) => t.tripId === followedTripId)) {
+      setFollowedTripId(null)
+    }
+  }, [trips, followedTripId])
+
   const activeCount = filterLine
     ? trips.filter((t) => t.lineNumber === filterLine).length
     : trips.length
@@ -82,7 +90,26 @@ export default function HomePage() {
           selfLat={lat}
           selfLng={lng}
           filterLine={filterLine}
+          followedTripId={followedTripId}
+          onFollow={setFollowedTripId}
+          onUnfollow={() => setFollowedTripId(null)}
         />
+
+        {/* Banner "Siguiendo línea X" */}
+        {followedTripId && (() => {
+          const ft = trips.find((t) => t.tripId === followedTripId)
+          return ft ? (
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold pointer-events-auto"
+              style={{ background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.35)', backdropFilter: 'blur(12px)', color: '#818cf8', whiteSpace: 'nowrap' }}>
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#6366f1' }} />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: '#6366f1' }} />
+              </span>
+              Siguiendo línea {ft.lineNumber}
+              <button onClick={() => setFollowedTripId(null)} className="ml-1 opacity-60 hover:opacity-100 transition" style={{ lineHeight: 1 }}>✕</button>
+            </div>
+          ) : null
+        })()}
 
         {/* Header */}
         <Header

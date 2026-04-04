@@ -6,11 +6,14 @@ import { reportTrip } from '@/lib/realtimeDb'
 import type { ActiveTrip } from '@/types'
 
 interface Props {
-  trip: ActiveTrip
+  trip:          ActiveTrip
   currentUserId?: string
+  isFollowed?:   boolean
+  onFollow?:     () => void
+  onUnfollow?:   () => void
 }
 
-export function BusMarker({ trip, currentUserId }: Props) {
+export function BusMarker({ trip, currentUserId, isFollowed, onFollow, onUnfollow }: Props) {
   const [open, setOpen]           = useState(false)
   const [reported, setReported]   = useState(false)
   const [reporting, setReporting] = useState(false)
@@ -35,7 +38,7 @@ export function BusMarker({ trip, currentUserId }: Props) {
     <>
       <AdvancedMarker position={position} onClick={() => setOpen(true)}>
         <div
-          className={`bus-marker ${isOwn ? 'own' : ''} ${reported ? 'reported' : ''}`}
+          className={`bus-marker ${isOwn ? 'own' : ''} ${reported ? 'reported' : ''} ${isFollowed ? 'followed' : ''}`}
           title={`Línea ${trip.lineNumber} — ${trip.branchName}`}
         >
           {trip.lineNumber}
@@ -65,11 +68,26 @@ export function BusMarker({ trip, currentUserId }: Props) {
               <p className="text-xs" style={{ color: '#4b5563' }}>{trip.speed} km/h</p>
             )}
 
+            <button
+              onClick={() => {
+                if (isFollowed) { onUnfollow?.() } else { onFollow?.() }
+                setOpen(false)
+              }}
+              className="mt-3 w-full text-xs font-medium py-1.5 rounded-lg transition"
+              style={{
+                background: isFollowed ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
+                color: '#818cf8',
+                border: `1px solid ${isFollowed ? 'rgba(99,102,241,0.4)' : 'rgba(99,102,241,0.2)'}`,
+              }}
+            >
+              {isFollowed ? 'Dejar de seguir' : 'Seguir'}
+            </button>
+
             {!isOwn && (
               <button
                 onClick={handleReport}
                 disabled={reported || reporting}
-                className="mt-3 w-full text-xs font-medium py-1.5 rounded-lg transition disabled:opacity-40"
+                className="mt-1.5 w-full text-xs font-medium py-1.5 rounded-lg transition disabled:opacity-40"
                 style={{
                   background: reported ? 'rgba(75,85,99,0.3)' : 'rgba(239,68,68,0.1)',
                   color: reported ? '#6b7280' : '#f87171',

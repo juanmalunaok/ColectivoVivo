@@ -5,6 +5,15 @@ import { useEffect } from 'react'
 import { BusMarker } from './BusMarker'
 import type { ActiveTrip } from '@/types'
 
+function FollowCentering({ trips, followedTripId }: { trips: ActiveTrip[]; followedTripId: string }) {
+  const map = useMap()
+  const followed = trips.find((t) => t.tripId === followedTripId)
+  useEffect(() => {
+    if (map && followed) map.panTo({ lat: followed.lat, lng: followed.lng })
+  }, [map, followed?.lat, followed?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+  return null
+}
+
 const CABA_CENTER = { lat: -34.6037, lng: -58.3816 }
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 const MAP_ID = process.env.NEXT_PUBLIC_MAPS_ID ?? ''
@@ -41,14 +50,17 @@ function SelfCentering({ lat, lng }: { lat: number; lng: number }) {
 }
 
 interface Props {
-  trips:          ActiveTrip[]
-  currentUserId?: string
-  selfLat?:       number | null
-  selfLng?:       number | null
-  filterLine?:    string | null
+  trips:            ActiveTrip[]
+  currentUserId?:   string
+  selfLat?:         number | null
+  selfLng?:         number | null
+  filterLine?:      string | null
+  followedTripId?:  string | null
+  onFollow?:        (tripId: string) => void
+  onUnfollow?:      () => void
 }
 
-export function MapView({ trips, currentUserId, selfLat, selfLng, filterLine }: Props) {
+export function MapView({ trips, currentUserId, selfLat, selfLng, filterLine, followedTripId, onFollow, onUnfollow }: Props) {
   const visibleTrips = filterLine
     ? trips.filter((t) => t.lineNumber === filterLine)
     : trips
@@ -64,9 +76,17 @@ export function MapView({ trips, currentUserId, selfLat, selfLng, filterLine }: 
         style={{ width: '100%', height: '100%' }}
         styles={DARK_STYLE}
       >
-        {selfLat && selfLng && <SelfCentering lat={selfLat} lng={selfLng} />}
+        {selfLat && selfLng && !followedTripId && <SelfCentering lat={selfLat} lng={selfLng} />}
+        {followedTripId && <FollowCentering trips={trips} followedTripId={followedTripId} />}
         {visibleTrips.map((trip) => (
-          <BusMarker key={trip.tripId} trip={trip} currentUserId={currentUserId} />
+          <BusMarker
+            key={trip.tripId}
+            trip={trip}
+            currentUserId={currentUserId}
+            isFollowed={trip.tripId === followedTripId}
+            onFollow={onFollow ? () => onFollow(trip.tripId) : undefined}
+            onUnfollow={onUnfollow}
+          />
         ))}
       </Map>
     </APIProvider>
