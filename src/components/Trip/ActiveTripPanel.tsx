@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import type { TripState } from '@/types'
+import type { KeepAwakeMethod } from '@/hooks/useKeepAwake'
 
 interface Props {
   trip:               TripState
   speed:              number | null
   geoError:           string | null
-  wakeLockActive?:    boolean
-  wakeLockSupported?: boolean
+  keepAwakeActive?:   boolean
+  keepAwakeMethod?:   KeepAwakeMethod
+  isIOS?:             boolean
   onStop:             () => Promise<void>
 }
 
-export function ActiveTripPanel({ trip, speed, geoError, wakeLockActive, wakeLockSupported, onStop }: Props) {
+export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAwakeMethod, isIOS, onStop }: Props) {
   const [elapsed,  setElapsed]  = useState(0)
   const [stopping, setStopping] = useState(false)
 
@@ -75,24 +77,27 @@ export function ActiveTripPanel({ trip, speed, geoError, wakeLockActive, wakeLoc
           </div>
 
           {/* Indicador de pantalla activa */}
-          {wakeLockSupported ? (
+          {keepAwakeActive ? (
             <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
-              style={{
-                background: wakeLockActive ? 'rgba(34,197,94,0.08)' : 'rgba(251,191,36,0.08)',
-                color: wakeLockActive ? '#4ade80' : '#fbbf24',
-                border: `1px solid ${wakeLockActive ? 'rgba(34,197,94,0.2)' : 'rgba(251,191,36,0.2)'}`,
-              }}>
-              <span>{wakeLockActive ? '🔒' : '⚠️'}</span>
+              style={{ background: 'rgba(34,197,94,0.08)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <span>🔒</span>
               <span>
-                {wakeLockActive
+                {keepAwakeMethod === 'wakeLock'
                   ? 'Pantalla activa — podés usar otras apps y el rastreo continúa'
-                  : 'Manteniendo pantalla activa...'}
+                  : 'Pantalla activa — el GPS sigue funcionando mientras no la apagues'}
               </span>
             </div>
-          ) : (
-            <div className="rounded-xl px-3 py-2 mb-3 text-xs"
+          ) : isIOS ? (
+            <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
               style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
-              Mantené la app abierta para que el rastreo funcione
+              <span>⚠️</span>
+              <span>Dejá la pantalla encendida — en iOS el GPS se pausa si se apaga</span>
+            </div>
+          ) : (
+            <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
+              style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+              <span>⚠️</span>
+              <span>Manteniendo pantalla activa...</span>
             </div>
           )}
 

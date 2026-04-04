@@ -13,7 +13,8 @@ import { useAuth } from '@/context/AuthContext'
 import { useActiveTrips } from '@/hooks/useActiveTrips'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useTrip } from '@/hooks/useTrip'
-import { useWakeLock } from '@/hooks/useWakeLock'
+import { useKeepAwake } from '@/hooks/useKeepAwake'
+import { IOSInstallBanner } from '@/components/UI/IOSInstallBanner'
 import type { BusLine, Branch } from '@/types'
 
 const MapView = dynamicImport(
@@ -34,7 +35,7 @@ export default function HomePage() {
   const [followedTripId, setFollowedTripId] = useState<string | null>(null)
 
   const geoEnabled = flowStep === 'active'
-  const { active: wakeLockActive, supported: wakeLockSupported } = useWakeLock(geoEnabled)
+  const { active: keepAwakeActive, method: keepAwakeMethod, ios: isIOS } = useKeepAwake(geoEnabled)
   const { lat, lng, speed, error: geoError } = useGeolocation({
     enabled: geoEnabled,
     onUpdate: updateLocation,
@@ -113,6 +114,9 @@ export default function HomePage() {
           ) : null
         })()}
 
+        {/* Banner instalación iOS */}
+        {flowStep === 'idle' && <IOSInstallBanner />}
+
         {/* Header */}
         <Header
           filterLine={filterLine}
@@ -145,8 +149,9 @@ export default function HomePage() {
             trip={trip}
             speed={speed}
             geoError={geoError}
-            wakeLockActive={wakeLockActive}
-            wakeLockSupported={wakeLockSupported}
+            keepAwakeActive={keepAwakeActive}
+            keepAwakeMethod={keepAwakeMethod}
+            isIOS={isIOS}
             onStop={handleStopTrip}
           />
         )}
