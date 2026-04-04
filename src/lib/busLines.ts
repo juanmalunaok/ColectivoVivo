@@ -17,6 +17,17 @@ function b(lineNumber: string, id: string, name: string) {
   return { id: `${lineNumber}-${id}`, name }
 }
 
+export function searchLines(query: string): BusLine[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return BUS_LINES
+  return BUS_LINES.filter(
+    (l) =>
+      l.number.includes(q) ||
+      l.name.toLowerCase().includes(q) ||
+      l.branches.some((b) => b.name.toLowerCase().includes(q)),
+  )
+}
+
 export const BUS_LINES: BusLine[] = [
   linea('1', [
     b('1', 'a', 'A - Est. Morán'),
