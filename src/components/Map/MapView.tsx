@@ -58,6 +58,7 @@ interface Props {
   selfLng?:         number | null
   filterLine?:      string | null
   followedTripId?:  string | null
+  activeLine?:      string | null
   onFollow?:        (tripId: string) => void
   onUnfollow?:      () => void
 }
@@ -75,16 +76,16 @@ function RoutePolyline({ lineNumber }: { lineNumber: string }) {
   )
 }
 
-export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filterLine, followedTripId, onFollow, onUnfollow }: Props) {
+export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filterLine, followedTripId, activeLine, onFollow, onUnfollow }: Props) {
   const visibleTrips = filterLine
     ? trips.filter((t) => t.lineNumber === filterLine)
     : trips
 
-  // Línea a mostrar: la que se sigue o la que se filtra
+  // Línea a mostrar: viaje propio activo > seguido > filtro
   const followedLine = followedTripId
     ? trips.find((t) => t.tripId === followedTripId)?.lineNumber ?? null
     : null
-  const routeLine = followedLine ?? filterLine ?? null
+  const routeLine = activeLine ?? followedLine ?? filterLine ?? null
 
   return (
     <APIProvider apiKey={MAPS_API_KEY}>

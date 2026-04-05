@@ -96,6 +96,7 @@ export default function HomePage() {
           selfLng={lng}
           filterLine={filterLine}
           followedTripId={followedTripId}
+          activeLine={flowStep === 'active' ? trip.lineNumber : null}
           onFollow={setFollowedTripId}
           onUnfollow={() => setFollowedTripId(null)}
         />
