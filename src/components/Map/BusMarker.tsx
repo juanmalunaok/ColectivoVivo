@@ -3,7 +3,13 @@
 import { useState } from 'react'
 import { AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import { reportTrip, endTrip } from '@/lib/realtimeDb'
-import type { ActiveTrip } from '@/types'
+import type { ActiveTrip, Occupancy } from '@/types'
+
+const OCCUPANCY_LABEL: Record<Occupancy, { emoji: string; label: string; color: string }> = {
+  empty:    { emoji: '🟢', label: 'Vacío',  color: '#4ade80' },
+  moderate: { emoji: '🟡', label: 'Normal', color: '#fbbf24' },
+  full:     { emoji: '🔴', label: 'Lleno',  color: '#f87171' },
+}
 
 interface Props {
   trip:          ActiveTrip
@@ -50,11 +56,21 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
   return (
     <>
       <AdvancedMarker position={position} onClick={() => setOpen(true)}>
-        <div
-          className={`bus-marker ${isOwn ? 'own' : ''} ${reported ? 'reported' : ''} ${isFollowed ? 'followed' : ''}`}
-          title={`Línea ${trip.lineNumber} — ${trip.branchName}`}
-        >
-          {trip.lineNumber}
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <div
+            className={`bus-marker ${isOwn ? 'own' : ''} ${reported ? 'reported' : ''} ${isFollowed ? 'followed' : ''}`}
+            title={`Línea ${trip.lineNumber} — ${trip.branchName}`}
+          >
+            {trip.lineNumber}
+          </div>
+          {trip.occupancy && (
+            <span style={{
+              position: 'absolute', top: -6, right: -6,
+              fontSize: 12, lineHeight: 1,
+            }}>
+              {OCCUPANCY_LABEL[trip.occupancy].emoji}
+            </span>
+          )}
         </div>
       </AdvancedMarker>
 
@@ -76,6 +92,12 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
             </div>
 
             <p className="text-xs mb-1" style={{ color: '#94a3b8' }}>{trip.branchName}</p>
+
+            {trip.occupancy && (
+              <p className="text-xs mb-1" style={{ color: OCCUPANCY_LABEL[trip.occupancy].color }}>
+                {OCCUPANCY_LABEL[trip.occupancy].emoji} {OCCUPANCY_LABEL[trip.occupancy].label}
+              </p>
+            )}
 
             {trip.speed != null && (
               <p className="text-xs" style={{ color: '#4b5563' }}>{trip.speed} km/h</p>

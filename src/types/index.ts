@@ -13,6 +13,8 @@ export interface Branch {
 
 // ─── Viajes activos (Firebase Realtime Database) ─────────────────────────────
 
+export type Occupancy = 'empty' | 'moderate' | 'full'
+
 export interface ActiveTrip {
   tripId: string
   userId: string        // UID de Firebase Auth (no se muestra en el mapa)
@@ -23,6 +25,7 @@ export interface ActiveTrip {
   lng: number
   heading?: number      // dirección del movimiento en grados (0-360)
   speed?: number        // km/h
+  occupancy?: Occupancy // estado de ocupación del colectivo
   timestamp: number     // epoch ms
   reports: number       // cantidad de reportes recibidos
   isVisible: boolean    // false si superó el umbral de reportes

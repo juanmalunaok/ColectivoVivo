@@ -70,6 +70,16 @@ export async function updateTripLocation(
   })
 }
 
+// ─── Actualizar ocupación ──────────────────────────────────────────────────
+
+export async function updateOccupancy(
+  tripId: string,
+  occupancy: import('@/types').Occupancy,
+): Promise<void> {
+  const tripRef = ref(db, `${TRIPS_PATH}/${tripId}`)
+  await update(tripRef, { occupancy })
+}
+
 // ─── Terminar viaje ────────────────────────────────────────────────────────
 
 export async function endTrip(tripId: string): Promise<void> {

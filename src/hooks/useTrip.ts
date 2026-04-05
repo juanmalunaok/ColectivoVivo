@@ -3,8 +3,8 @@
 import { useState, useCallback, useRef } from 'react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { firestore } from '@/lib/firebase'
-import { createTrip, updateTripLocation, endTrip } from '@/lib/realtimeDb'
-import type { TripState } from '@/types'
+import { createTrip, updateTripLocation, endTrip, updateOccupancy } from '@/lib/realtimeDb'
+import type { TripState, Occupancy } from '@/types'
 
 const IDLE: TripState = {
   isActive:     false,
@@ -61,6 +61,11 @@ export function useTrip(userId: string | undefined) {
     [],
   )
 
+  const setOccupancy = useCallback(async (occupancy: Occupancy) => {
+    if (!tripIdRef.current) return
+    await updateOccupancy(tripIdRef.current, occupancy)
+  }, [])
+
   const stopTrip = useCallback(async () => {
     if (!tripIdRef.current || !userId) return
 
@@ -71,5 +76,5 @@ export function useTrip(userId: string | undefined) {
     setTrip(IDLE)
   }, [userId])
 
-  return { trip, startTrip, updateLocation, stopTrip }
+  return { trip, startTrip, updateLocation, setOccupancy, stopTrip }
 }

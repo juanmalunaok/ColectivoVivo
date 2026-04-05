@@ -28,7 +28,7 @@ export default function HomePage() {
   const { user }               = useAuth()
   const isAdmin = user?.email === 'juanma.lunaok@gmail.com'
   const { trips }              = useActiveTrips()
-  const { trip, startTrip, updateLocation, stopTrip } = useTrip(user?.uid)
+  const { trip, startTrip, updateLocation, setOccupancy, stopTrip } = useTrip(user?.uid)
 
   const [flowStep, setFlowStep] = useState<FlowStep>('idle')
   const [pending,  setPending]  = useState<{ line: BusLine; branch: Branch } | null>(null)
@@ -155,6 +155,7 @@ export default function HomePage() {
             keepAwakeMethod={keepAwakeMethod}
             isIOS={isIOS}
             onStop={handleStopTrip}
+            onOccupancyChange={setOccupancy}
           />
         )}
 

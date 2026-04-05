@@ -1,8 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { TripState } from '@/types'
+import type { TripState, Occupancy } from '@/types'
 import type { KeepAwakeMethod } from '@/hooks/useKeepAwake'
+
+const OCCUPANCY_OPTIONS: {
+  value: Occupancy
+  label: string
+  emoji: string
+  color: string
+  bg: string
+  border: string
+}[] = [
+  { value: 'empty',    label: 'Vacío',  emoji: '🟢', color: '#4ade80', bg: 'rgba(34,197,94,0.10)',  border: 'rgba(34,197,94,0.25)'  },
+  { value: 'moderate', label: 'Normal', emoji: '🟡', color: '#fbbf24', bg: 'rgba(251,191,36,0.10)', border: 'rgba(251,191,36,0.25)' },
+  { value: 'full',     label: 'Lleno',  emoji: '🔴', color: '#f87171', bg: 'rgba(239,68,68,0.10)',  border: 'rgba(239,68,68,0.25)'  },
+]
 
 interface Props {
   trip:               TripState
@@ -12,11 +25,14 @@ interface Props {
   keepAwakeMethod?:   KeepAwakeMethod
   isIOS?:             boolean
   onStop:             () => Promise<void>
+  onOccupancyChange:  (o: Occupancy) => Promise<void>
 }
 
-export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAwakeMethod, isIOS, onStop }: Props) {
-  const [elapsed,  setElapsed]  = useState(0)
-  const [stopping, setStopping] = useState(false)
+export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAwakeMethod, isIOS, onStop, onOccupancyChange }: Props) {
+  const [elapsed,    setElapsed]    = useState(0)
+  const [stopping,   setStopping]   = useState(false)
+  const [occupancy,  setOccupancy]  = useState<Occupancy | null>(null)
+  const [savingOcc,  setSavingOcc]  = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => setElapsed((s) => s + 1), 1000)
@@ -34,6 +50,17 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
   async function handleStop() {
     setStopping(true)
     try { await onStop() } finally { setStopping(false) }
+  }
+
+  async function handleOccupancy(value: Occupancy) {
+    if (savingOcc) return
+    setSavingOcc(true)
+    try {
+      await onOccupancyChange(value)
+      setOccupancy(value)
+    } finally {
+      setSavingOcc(false)
+    }
   }
 
   const border = 'rgba(255,255,255,0.07)'
@@ -74,6 +101,32 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
                 <p className="text-xs mt-0.5" style={{ color: '#4b5563' }}>km/h</p>
               </div>
             )}
+          </div>
+
+          {/* Selector de ocupación */}
+          <div className="mb-3">
+            <p className="text-xs mb-1.5" style={{ color: '#64748b' }}>¿Cómo viene el colectivo?</p>
+            <div className="flex gap-2">
+              {OCCUPANCY_OPTIONS.map((opt) => {
+                const selected = occupancy === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleOccupancy(opt.value)}
+                    disabled={savingOcc}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold transition disabled:opacity-50"
+                    style={{
+                      background: selected ? opt.bg : 'rgba(255,255,255,0.04)',
+                      color:      selected ? opt.color : '#64748b',
+                      border:     `1px solid ${selected ? opt.border : border}`,
+                      boxShadow:  selected ? `0 0 8px ${opt.bg}` : 'none',
+                    }}
+                  >
+                    {opt.emoji} {opt.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Indicador de pantalla activa */}
