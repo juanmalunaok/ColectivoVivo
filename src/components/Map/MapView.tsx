@@ -1,8 +1,9 @@
 'use client'
 
-import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps'
+import { APIProvider, Map, Polyline, useMap } from '@vis.gl/react-google-maps'
 import { useEffect } from 'react'
 import { BusMarker } from './BusMarker'
+import { useRouteShape } from '@/hooks/useRouteShape'
 import type { ActiveTrip } from '@/types'
 
 function FollowCentering({ trips, followedTripId }: { trips: ActiveTrip[]; followedTripId: string }) {
@@ -61,10 +62,29 @@ interface Props {
   onUnfollow?:      () => void
 }
 
+function RoutePolyline({ lineNumber }: { lineNumber: string }) {
+  const coords = useRouteShape(lineNumber)
+  if (!coords || coords.length < 2) return null
+  return (
+    <Polyline
+      path={coords}
+      strokeColor="#6366f1"
+      strokeOpacity={0.55}
+      strokeWeight={4}
+    />
+  )
+}
+
 export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filterLine, followedTripId, onFollow, onUnfollow }: Props) {
   const visibleTrips = filterLine
     ? trips.filter((t) => t.lineNumber === filterLine)
     : trips
+
+  // Línea a mostrar: la que se sigue o la que se filtra
+  const followedLine = followedTripId
+    ? trips.find((t) => t.tripId === followedTripId)?.lineNumber ?? null
+    : null
+  const routeLine = followedLine ?? filterLine ?? null
 
   return (
     <APIProvider apiKey={MAPS_API_KEY}>
@@ -79,6 +99,7 @@ export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filte
       >
         {selfLat && selfLng && !followedTripId && <SelfCentering lat={selfLat} lng={selfLng} />}
         {followedTripId && <FollowCentering trips={trips} followedTripId={followedTripId} />}
+        {routeLine && <RoutePolyline lineNumber={routeLine} />}
         {visibleTrips.map((trip) => (
           <BusMarker
             key={trip.tripId}
