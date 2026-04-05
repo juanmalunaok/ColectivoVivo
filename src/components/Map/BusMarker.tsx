@@ -2,23 +2,36 @@
 
 import { useState } from 'react'
 import { AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
-import { reportTrip } from '@/lib/realtimeDb'
+import { reportTrip, endTrip } from '@/lib/realtimeDb'
 import type { ActiveTrip } from '@/types'
 
 interface Props {
   trip:          ActiveTrip
   currentUserId?: string
   isFollowed?:   boolean
+  isAdmin?:      boolean
   onFollow?:     () => void
   onUnfollow?:   () => void
 }
 
-export function BusMarker({ trip, currentUserId, isFollowed, onFollow, onUnfollow }: Props) {
+export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, onUnfollow }: Props) {
   const [open, setOpen]           = useState(false)
   const [reported, setReported]   = useState(false)
   const [reporting, setReporting] = useState(false)
+  const [deleting, setDeleting]   = useState(false)
 
   const isOwn = trip.userId === currentUserId
+
+  async function handleDelete() {
+    if (deleting) return
+    setDeleting(true)
+    try {
+      await endTrip(trip.tripId)
+      setOpen(false)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   async function handleReport() {
     if (reported || reporting) return
@@ -95,6 +108,21 @@ export function BusMarker({ trip, currentUserId, isFollowed, onFollow, onUnfollo
                 }}
               >
                 {reported ? 'Reportado' : reporting ? 'Reportando...' : 'Reportar marcador'}
+              </button>
+            )}
+
+            {isAdmin && (
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="mt-1.5 w-full text-xs font-bold py-1.5 rounded-lg transition disabled:opacity-40"
+                style={{
+                  background: 'rgba(239,68,68,0.25)',
+                  color: '#fca5a5',
+                  border: '1px solid rgba(239,68,68,0.5)',
+                }}
+              >
+                {deleting ? 'Eliminando...' : '🗑 Eliminar (admin)'}
               </button>
             )}
           </div>

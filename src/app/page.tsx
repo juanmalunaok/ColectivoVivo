@@ -26,6 +26,7 @@ type FlowStep = 'idle' | 'selectingLine' | 'confirmingConsent' | 'active'
 
 export default function HomePage() {
   const { user }               = useAuth()
+  const isAdmin = user?.email === 'juanma.lunaok@gmail.com'
   const { trips }              = useActiveTrips()
   const { trip, startTrip, updateLocation, stopTrip } = useTrip(user?.uid)
 
@@ -90,6 +91,7 @@ export default function HomePage() {
         <MapView
           trips={trips}
           currentUserId={user?.uid}
+          isAdmin={isAdmin}
           selfLat={lat}
           selfLng={lng}
           filterLine={filterLine}

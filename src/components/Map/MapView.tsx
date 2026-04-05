@@ -52,6 +52,7 @@ function SelfCentering({ lat, lng }: { lat: number; lng: number }) {
 interface Props {
   trips:            ActiveTrip[]
   currentUserId?:   string
+  isAdmin?:         boolean
   selfLat?:         number | null
   selfLng?:         number | null
   filterLine?:      string | null
@@ -60,7 +61,7 @@ interface Props {
   onUnfollow?:      () => void
 }
 
-export function MapView({ trips, currentUserId, selfLat, selfLng, filterLine, followedTripId, onFollow, onUnfollow }: Props) {
+export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filterLine, followedTripId, onFollow, onUnfollow }: Props) {
   const visibleTrips = filterLine
     ? trips.filter((t) => t.lineNumber === filterLine)
     : trips
@@ -83,6 +84,7 @@ export function MapView({ trips, currentUserId, selfLat, selfLng, filterLine, fo
             key={trip.tripId}
             trip={trip}
             currentUserId={currentUserId}
+            isAdmin={isAdmin}
             isFollowed={trip.tripId === followedTripId}
             onFollow={onFollow ? () => onFollow(trip.tripId) : undefined}
             onUnfollow={onUnfollow}
