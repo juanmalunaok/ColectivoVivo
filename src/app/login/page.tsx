@@ -46,29 +46,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5" style={{ background: '#080810' }}>
+    <div className="min-h-screen flex items-center justify-center px-5" style={{ background: '#0e0e0e' }}>
       <div className="w-full max-w-[360px]">
 
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl mb-4"
+            style={{ background: '#ff5e07' }}>
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-              <path d="M8 6h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="white" strokeWidth="1.5"/>
-              <circle cx="9" cy="17" r="1.5" fill="white"/>
-              <circle cx="15" cy="17" r="1.5" fill="white"/>
-              <path d="M6 10h12" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M8 6h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="black" strokeWidth="1.5"/>
+              <circle cx="9" cy="17" r="1.5" fill="black"/>
+              <circle cx="15" cy="17" r="1.5" fill="black"/>
+              <path d="M6 10h12" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">ColectivoVivo</h1>
-          <p className="text-sm mt-1" style={{ color: '#4b5563' }}>Colectivos de AMBA en tiempo real</p>
+          <h1 className="font-headline font-black text-2xl text-white uppercase tracking-tight italic">COLECTIVO VIVO</h1>
+          <p className="text-sm mt-1" style={{ color: '#adaaaa' }}>Colectivos de AMBA en tiempo real</p>
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl p-6" style={{ background: '#0f0f1a', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="rounded-2xl p-6" style={{ background: '#141414', border: '1px solid #262626' }}>
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#94a3b8' }}>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: '#adaaaa' }}>
                 Email
               </label>
               <input
@@ -78,15 +78,15 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition focus:ring-2"
-                style={{ background: '#16162a', border: '1px solid rgba(255,255,255,0.07)' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#6366f1'}
-                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
+                className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
+                style={{ background: '#1a1919', border: '1px solid #262626' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#ff5e07'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#262626'}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#94a3b8' }}>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: '#adaaaa' }}>
                 Contraseña
               </label>
               <input
@@ -96,15 +96,15 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition"
-                style={{ background: '#16162a', border: '1px solid rgba(255,255,255,0.07)' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#6366f1'}
-                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
+                className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
+                style={{ background: '#1a1919', border: '1px solid #262626' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#ff5e07'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#262626'}
               />
             </div>
 
             {error && (
-              <div className="rounded-xl px-3.5 py-2.5 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
                 {error}
               </div>
             )}
@@ -112,23 +112,23 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 rounded-xl text-sm font-semibold text-white transition disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
+              className="w-full py-4 rounded-full font-headline font-bold text-black text-sm uppercase tracking-tight transition disabled:opacity-50 active:scale-95"
+              style={{ background: '#ff5e07', boxShadow: '0 4px 14px rgba(255,94,7,0.4)' }}
             >
               {submitting ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
 
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-            <span className="text-xs" style={{ color: '#374151' }}>o</span>
-            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <div className="flex-1 h-px" style={{ background: '#262626' }} />
+            <span className="text-xs" style={{ color: '#adaaaa' }}>o</span>
+            <div className="flex-1 h-px" style={{ background: '#262626' }} />
           </div>
 
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-medium transition"
-            style={{ background: '#16162a', border: '1px solid rgba(255,255,255,0.07)', color: '#e2e8f0' }}
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-full text-sm font-medium transition active:scale-95"
+            style={{ background: '#1a1919', border: '1px solid #262626', color: '#ffffff' }}
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -140,9 +140,9 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p className="text-center text-sm mt-6" style={{ color: '#4b5563' }}>
+        <p className="text-center text-sm mt-6" style={{ color: '#adaaaa' }}>
           ¿No tenés cuenta?{' '}
-          <Link href="/register" className="font-semibold" style={{ color: '#818cf8' }}>
+          <Link href="/register" className="font-bold" style={{ color: '#ff9064' }}>
             Registrate
           </Link>
         </p>
