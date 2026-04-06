@@ -14,7 +14,6 @@ import { useActiveTrips } from '@/hooks/useActiveTrips'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useTrip } from '@/hooks/useTrip'
 import { useKeepAwake } from '@/hooks/useKeepAwake'
-import { IOSInstallBanner } from '@/components/UI/IOSInstallBanner'
 import type { BusLine, Branch } from '@/types'
 
 const MapView = dynamicImport(
@@ -116,9 +115,6 @@ export default function HomePage() {
             </div>
           ) : null
         })()}
-
-        {/* Banner instalación iOS */}
-        {flowStep === 'idle' && <IOSInstallBanner />}
 
         {/* Header */}
         <Header
