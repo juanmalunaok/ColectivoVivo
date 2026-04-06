@@ -1,7 +1,7 @@
 'use client'
 
 import { APIProvider, Map, Polyline, useMap } from '@vis.gl/react-google-maps'
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { BusMarker } from './BusMarker'
 import { useRouteShape } from '@/hooks/useRouteShape'
 import type { ActiveTrip } from '@/types'
@@ -50,6 +50,46 @@ function SelfCentering({ lat, lng }: { lat: number; lng: number }) {
   return null
 }
 
+function CenterButton({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap()
+  const handleCenter = useCallback(() => {
+    if (map) {
+      map.panTo({ lat, lng })
+      map.setZoom(15)
+    }
+  }, [map, lat, lng])
+
+  return (
+    <button
+      onClick={handleCenter}
+      aria-label="Centrar en mi ubicación"
+      style={{
+        position: 'absolute',
+        bottom: '180px',
+        right: '16px',
+        width: '44px',
+        height: '44px',
+        borderRadius: '50%',
+        background: '#141414',
+        border: '1px solid #262626',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        zIndex: 10,
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5e07" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        <circle cx="12" cy="12" r="8" strokeOpacity="0.3"/>
+      </svg>
+    </button>
+  )
+}
+
 interface Props {
   trips:            ActiveTrip[]
   currentUserId?:   string
@@ -89,30 +129,33 @@ export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filte
 
   return (
     <APIProvider apiKey={MAPS_API_KEY}>
-      <Map
-        mapId={MAP_ID}
-        defaultCenter={CABA_CENTER}
-        defaultZoom={13}
-        gestureHandling="greedy"
-        disableDefaultUI
-        style={{ width: '100%', height: '100%' }}
-        styles={DARK_STYLE}
-      >
-        {selfLat && selfLng && !followedTripId && <SelfCentering lat={selfLat} lng={selfLng} />}
-        {followedTripId && <FollowCentering trips={trips} followedTripId={followedTripId} />}
-        {routeLine && <RoutePolyline lineNumber={routeLine} />}
-        {visibleTrips.map((trip) => (
-          <BusMarker
-            key={trip.tripId}
-            trip={trip}
-            currentUserId={currentUserId}
-            isAdmin={isAdmin}
-            isFollowed={trip.tripId === followedTripId}
-            onFollow={onFollow ? () => onFollow(trip.tripId) : undefined}
-            onUnfollow={onUnfollow}
-          />
-        ))}
-      </Map>
+      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <Map
+          mapId={MAP_ID}
+          defaultCenter={CABA_CENTER}
+          defaultZoom={13}
+          gestureHandling="greedy"
+          disableDefaultUI
+          style={{ width: '100%', height: '100%' }}
+          styles={DARK_STYLE}
+        >
+          {selfLat && selfLng && !followedTripId && <SelfCentering lat={selfLat} lng={selfLng} />}
+          {followedTripId && <FollowCentering trips={trips} followedTripId={followedTripId} />}
+          {routeLine && <RoutePolyline lineNumber={routeLine} />}
+          {visibleTrips.map((trip) => (
+            <BusMarker
+              key={trip.tripId}
+              trip={trip}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+              isFollowed={trip.tripId === followedTripId}
+              onFollow={onFollow ? () => onFollow(trip.tripId) : undefined}
+              onUnfollow={onUnfollow}
+            />
+          ))}
+        </Map>
+        {selfLat && selfLng && <CenterButton lat={selfLat} lng={selfLng} />}
+      </div>
     </APIProvider>
   )
 }
