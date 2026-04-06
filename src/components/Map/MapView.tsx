@@ -50,14 +50,19 @@ function SelfCentering({ lat, lng }: { lat: number; lng: number }) {
   return null
 }
 
-function CenterButton({ lat, lng }: { lat: number; lng: number }) {
+function CenterButton() {
   const map = useMap()
   const handleCenter = useCallback(() => {
-    if (map) {
-      map.panTo({ lat, lng })
-      map.setZoom(15)
-    }
-  }, [map, lat, lng])
+    if (!map || !('geolocation' in navigator)) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        map.setZoom(15)
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000 },
+    )
+  }, [map])
 
   return (
     <button
@@ -154,7 +159,7 @@ export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filte
             />
           ))}
         </Map>
-        {selfLat && selfLng && <CenterButton lat={selfLat} lng={selfLng} />}
+        <CenterButton />
       </div>
     </APIProvider>
   )
