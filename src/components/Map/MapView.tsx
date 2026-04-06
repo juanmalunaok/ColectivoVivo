@@ -37,7 +37,7 @@ const DARK_STYLE = [
   { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#5a6480' }] },
   { featureType: 'road.local', elementType: 'labels', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#14142a' }] },
-  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#6366f1' }] },
+  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#ff5e07' }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#04040e' }] },
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#1e2033' }] },
 ]
