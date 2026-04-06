@@ -69,9 +69,9 @@ function RoutePolyline({ lineNumber }: { lineNumber: string }) {
   return (
     <Polyline
       path={coords}
-      strokeColor="#6366f1"
-      strokeOpacity={0.55}
-      strokeWeight={4}
+      strokeColor="#ff5e07"
+      strokeOpacity={0.7}
+      strokeWeight={5}
     />
   )
 }

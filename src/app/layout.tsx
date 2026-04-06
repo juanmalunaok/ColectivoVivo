@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Space_Grotesk, Manrope } from 'next/font/google'
 import dynamic from 'next/dynamic'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-headline' })
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-body' })
 
 const ClientProviders = dynamic(
   () => import('@/components/UI/ClientProviders'),
@@ -33,13 +34,13 @@ export const viewport: Viewport = {
   initialScale:         1,
   maximumScale:         1,
   userScalable:         false,
-  themeColor:           '#080810',
+  themeColor:           '#0e0e0e',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className={inter.className}>
+    <html lang="es" className={`${spaceGrotesk.variable} ${manrope.variable}`}>
+      <body style={{ fontFamily: 'var(--font-body), sans-serif' }}>
         <ClientProviders>
           {children}
         </ClientProviders>

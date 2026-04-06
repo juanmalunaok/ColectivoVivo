@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/manul/Downloads/**)",
+      "Bash(unzip -o stitch_colectivo_vivo_mobile_ui.zip -d stitch_design)"
+    ]
+  }
+}

@@ -7,14 +7,11 @@ import type { KeepAwakeMethod } from '@/hooks/useKeepAwake'
 const OCCUPANCY_OPTIONS: {
   value: Occupancy
   label: string
-  emoji: string
-  color: string
-  bg: string
-  border: string
+  icon: string
 }[] = [
-  { value: 'empty',    label: 'Vacío',  emoji: '🟢', color: '#4ade80', bg: 'rgba(34,197,94,0.10)',  border: 'rgba(34,197,94,0.25)'  },
-  { value: 'moderate', label: 'Normal', emoji: '🟡', color: '#fbbf24', bg: 'rgba(251,191,36,0.10)', border: 'rgba(251,191,36,0.25)' },
-  { value: 'full',     label: 'Lleno',  emoji: '🔴', color: '#f87171', bg: 'rgba(239,68,68,0.10)',  border: 'rgba(239,68,68,0.25)'  },
+  { value: 'empty',    label: 'Vacío',  icon: 'person'  },
+  { value: 'moderate', label: 'Normal', icon: 'group'   },
+  { value: 'full',     label: 'Lleno',  icon: 'groups'  },
 ]
 
 interface Props {
@@ -29,10 +26,10 @@ interface Props {
 }
 
 export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAwakeMethod, isIOS, onStop, onOccupancyChange }: Props) {
-  const [elapsed,    setElapsed]    = useState(0)
-  const [stopping,   setStopping]   = useState(false)
-  const [occupancy,  setOccupancy]  = useState<Occupancy | null>(null)
-  const [savingOcc,  setSavingOcc]  = useState(false)
+  const [elapsed,   setElapsed]   = useState(0)
+  const [stopping,  setStopping]  = useState(false)
+  const [occupancy, setOccupancy] = useState<Occupancy | null>(null)
+  const [savingOcc, setSavingOcc] = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => setElapsed((s) => s + 1), 1000)
@@ -63,50 +60,49 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
     }
   }
 
-  const border = 'rgba(255,255,255,0.07)'
-
   return (
     <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
-      <div className="mx-4 mb-6 rounded-3xl overflow-hidden pointer-events-auto shadow-2xl"
-        style={{ background: '#0f0f1a', border: `1px solid ${border}` }}>
+      <div className="pointer-events-auto shadow-2xl"
+        style={{ background: '#000000', borderTop: '1px solid #1a1919', borderRadius: '14px 14px 0 0' }}>
 
-        {/* Barra de estado */}
-        <div className="flex items-center gap-2.5 px-4 py-2.5"
-          style={{ background: 'rgba(99,102,241,0.12)', borderBottom: `1px solid rgba(99,102,241,0.2)` }}>
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-              style={{ background: '#4ade80' }} />
-            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#22c55e' }} />
-          </span>
-          <span className="text-xs font-semibold" style={{ color: '#818cf8' }}>
-            Viaje activo · {formatTime(elapsed)}
-          </span>
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full" style={{ background: '#262626' }} />
         </div>
 
-        <div className="px-4 py-4">
-          {/* Info de línea */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl text-white font-black text-xl flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}>
-              {trip.lineNumber}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-bold text-white text-base leading-tight">Línea {trip.lineNumber}</p>
-              <p className="text-xs mt-0.5 truncate" style={{ color: '#64748b' }}>{trip.branchName}</p>
-            </div>
-            {speed !== null && (
-              <div className="text-right flex-shrink-0 rounded-xl px-3 py-2"
-                style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${border}` }}>
-                <p className="text-xl font-black text-white leading-none">{speed}</p>
-                <p className="text-xs mt-0.5" style={{ color: '#4b5563' }}>km/h</p>
-              </div>
-            )}
+        {/* Destino / status bar */}
+        <div className="flex items-center gap-3 px-5 py-3 mx-4 mb-3 rounded-[14px]"
+          style={{ background: '#141414' }}>
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl font-headline font-extrabold text-black text-base flex-shrink-0"
+            style={{ background: '#ff5e07' }}>
+            {trip.lineNumber}
           </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs uppercase font-headline font-bold tracking-widest leading-none mb-0.5"
+              style={{ color: '#adaaaa' }}>En camino</p>
+            <p className="font-headline font-bold text-white text-sm leading-tight truncate">{trip.branchName}</p>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="font-headline font-bold text-sm" style={{ color: '#ff9064' }}>{formatTime(elapsed)}</p>
+            <p className="text-xs uppercase tracking-tighter" style={{ color: '#adaaaa' }}>Activo</p>
+          </div>
+        </div>
 
-          {/* Selector de ocupación */}
-          <div className="mb-3">
-            <p className="text-xs mb-1.5" style={{ color: '#64748b' }}>¿Cómo viene el colectivo?</p>
-            <div className="flex gap-2">
+        <div className="px-4 pb-6">
+          {/* Velocidad */}
+          {speed !== null && (
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <span className="text-xs font-bold font-headline" style={{ color: '#adaaaa' }}>VELOCIDAD</span>
+              <span className="font-headline font-black text-white text-sm">{speed} km/h</span>
+            </div>
+          )}
+
+          {/* Ocupación */}
+          <div className="mb-4">
+            <p className="text-xs uppercase font-headline font-bold tracking-widest mb-2 px-1"
+              style={{ color: '#adaaaa' }}>Estado de ocupación</p>
+            <div className="grid grid-cols-3 gap-2 p-2 rounded-[14px]"
+              style={{ background: '#141414' }}>
               {OCCUPANCY_OPTIONS.map((opt) => {
                 const selected = occupancy === opt.value
                 return (
@@ -114,25 +110,28 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
                     key={opt.value}
                     onClick={() => handleOccupancy(opt.value)}
                     disabled={savingOcc}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold transition disabled:opacity-50"
+                    className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition disabled:opacity-50"
                     style={{
-                      background: selected ? opt.bg : 'rgba(255,255,255,0.04)',
-                      color:      selected ? opt.color : '#64748b',
-                      border:     `1px solid ${selected ? opt.border : border}`,
-                      boxShadow:  selected ? `0 0 8px ${opt.bg}` : 'none',
+                      background: selected ? '#ff5e07' : 'transparent',
+                      color:      selected ? '#000000' : '#adaaaa',
                     }}
                   >
-                    {opt.emoji} {opt.label}
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={selected ? 2.5 : 1.5}>
+                      {opt.value === 'empty'    && <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />}
+                      {opt.value === 'moderate' && <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />}
+                      {opt.value === 'full'     && <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zM5 20v-2a4 4 0 014-4h.5" />}
+                    </svg>
+                    <span className="font-headline text-xs font-bold uppercase">{opt.label}</span>
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* Indicador de pantalla activa */}
+          {/* Indicador pantalla activa */}
           {keepAwakeActive ? (
             <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
-              style={{ background: 'rgba(34,197,94,0.08)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.2)' }}>
+              style={{ background: 'rgba(34,197,94,0.08)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.15)' }}>
               <span>🔒</span>
               <span>
                 {keepAwakeMethod === 'wakeLock'
@@ -142,13 +141,13 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
             </div>
           ) : isIOS ? (
             <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
-              style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+              style={{ background: 'rgba(255,183,77,0.08)', color: '#ffb74d', border: '1px solid rgba(255,183,77,0.15)' }}>
               <span>⚠️</span>
               <span>Dejá la pantalla encendida — en iOS el GPS se pausa si se apaga</span>
             </div>
           ) : (
             <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
-              style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+              style={{ background: 'rgba(255,183,77,0.08)', color: '#ffb74d', border: '1px solid rgba(255,183,77,0.15)' }}>
               <span>⚠️</span>
               <span>Manteniendo pantalla activa...</span>
             </div>
@@ -156,7 +155,7 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
 
           {geoError && (
             <div className="rounded-xl px-3 py-2 mb-3 text-xs"
-              style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+              style={{ background: 'rgba(255,113,108,0.08)', color: '#ff716c', border: '1px solid rgba(255,113,108,0.15)' }}>
               {geoError}
             </div>
           )}
@@ -164,10 +163,10 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
           <button
             onClick={handleStop}
             disabled={stopping}
-            className="w-full py-3 rounded-2xl text-sm font-bold transition disabled:opacity-50"
-            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
+            className="w-full py-4 rounded-full text-sm font-headline font-bold uppercase tracking-tight transition disabled:opacity-50"
+            style={{ background: '#ff716c', color: '#ffffff' }}
           >
-            {stopping ? 'Terminando...' : 'Terminar viaje'}
+            {stopping ? 'Terminando...' : 'Dejar de compartir'}
           </button>
         </div>
       </div>

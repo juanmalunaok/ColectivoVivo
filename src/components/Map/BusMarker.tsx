@@ -65,8 +65,8 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
           </div>
           {trip.occupancy && (
             <span style={{
-              position: 'absolute', top: -6, right: -6,
-              fontSize: 12, lineHeight: 1,
+              position: 'absolute', top: -4, right: -4,
+              fontSize: 11, lineHeight: 1,
             }}>
               {OCCUPANCY_LABEL[trip.occupancy].emoji}
             </span>
@@ -78,20 +78,20 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
         <InfoWindow
           position={position}
           onCloseClick={() => setOpen(false)}
-          pixelOffset={[0, -20]}
+          pixelOffset={[0, -24]}
         >
-          <div style={{ background: '#0f0f1a', borderRadius: 12, padding: '12px 14px', minWidth: 160, border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ background: '#141414', borderRadius: 14, padding: '14px 16px', minWidth: 170, border: '1px solid #262626' }}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center rounded-lg px-2.5 py-1 text-xs font-bold text-white"
-                style={{ background: isOwn ? '#06b6d4' : '#6366f1' }}>
+              <span className="font-headline font-black inline-flex items-center justify-center rounded-xl px-2.5 py-1 text-sm text-black"
+                style={{ background: isOwn ? '#ff9064' : '#ff5e07' }}>
                 {trip.lineNumber}
               </span>
               {isOwn && (
-                <span className="text-xs font-medium" style={{ color: '#06b6d4' }}>Sos vos</span>
+                <span className="text-xs font-bold font-headline" style={{ color: '#ff9064' }}>Sos vos</span>
               )}
             </div>
 
-            <p className="text-xs mb-1" style={{ color: '#94a3b8' }}>{trip.branchName}</p>
+            <p className="text-xs mb-1 font-medium" style={{ color: '#adaaaa' }}>{trip.branchName}</p>
 
             {trip.occupancy && (
               <p className="text-xs mb-1" style={{ color: OCCUPANCY_LABEL[trip.occupancy].color }}>
@@ -100,7 +100,7 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
             )}
 
             {trip.speed != null && (
-              <p className="text-xs" style={{ color: '#4b5563' }}>{trip.speed} km/h</p>
+              <p className="text-xs" style={{ color: '#adaaaa' }}>{trip.speed} km/h</p>
             )}
 
             <button
@@ -108,11 +108,11 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
                 if (isFollowed) { onUnfollow?.() } else { onFollow?.() }
                 setOpen(false)
               }}
-              className="mt-3 w-full text-xs font-medium py-1.5 rounded-lg transition"
+              className="mt-3 w-full text-xs font-headline font-bold py-2 rounded-full transition uppercase tracking-tight"
               style={{
-                background: isFollowed ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
-                color: '#818cf8',
-                border: `1px solid ${isFollowed ? 'rgba(99,102,241,0.4)' : 'rgba(99,102,241,0.2)'}`,
+                background: isFollowed ? 'rgba(255,94,7,0.15)' : 'rgba(255,94,7,0.1)',
+                color: '#ff9064',
+                border: `1px solid ${isFollowed ? 'rgba(255,94,7,0.4)' : 'rgba(255,94,7,0.2)'}`,
               }}
             >
               {isFollowed ? 'Dejar de seguir' : 'Seguir'}
@@ -122,11 +122,11 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
               <button
                 onClick={handleReport}
                 disabled={reported || reporting}
-                className="mt-1.5 w-full text-xs font-medium py-1.5 rounded-lg transition disabled:opacity-40"
+                className="mt-1.5 w-full text-xs font-medium py-1.5 rounded-full transition disabled:opacity-40"
                 style={{
-                  background: reported ? 'rgba(75,85,99,0.3)' : 'rgba(239,68,68,0.1)',
-                  color: reported ? '#6b7280' : '#f87171',
-                  border: `1px solid ${reported ? 'rgba(75,85,99,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                  background: reported ? 'rgba(75,85,99,0.2)' : 'rgba(255,113,108,0.1)',
+                  color: reported ? '#6b7280' : '#ff716c',
+                  border: `1px solid ${reported ? 'rgba(75,85,99,0.2)' : 'rgba(255,113,108,0.2)'}`,
                 }}
               >
                 {reported ? 'Reportado' : reporting ? 'Reportando...' : 'Reportar marcador'}
@@ -137,11 +137,11 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="mt-1.5 w-full text-xs font-bold py-1.5 rounded-lg transition disabled:opacity-40"
+                className="mt-1.5 w-full text-xs font-bold py-1.5 rounded-full transition disabled:opacity-40"
                 style={{
-                  background: 'rgba(239,68,68,0.25)',
-                  color: '#fca5a5',
-                  border: '1px solid rgba(239,68,68,0.5)',
+                  background: 'rgba(255,113,108,0.2)',
+                  color: '#ff716c',
+                  border: '1px solid rgba(255,113,108,0.4)',
                 }}
               >
                 {deleting ? 'Eliminando...' : '🗑 Eliminar (admin)'}
