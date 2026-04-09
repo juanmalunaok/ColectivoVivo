@@ -14,8 +14,23 @@ export function LineSelector({ onSelect, onCancel }: Props) {
   const [selectedLine,   setSelectedLine]   = useState<BusLine | null>(null)
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [vpHeight, setVpHeight] = useState<number>(
+    typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 700
+  )
 
   useEffect(() => { inputRef.current?.focus() }, [])
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => setVpHeight(vv.height)
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [])
 
   const filtered = useMemo(() => searchLines(query), [query])
 
@@ -24,9 +39,12 @@ export function LineSelector({ onSelect, onCancel }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}>
+    <div
+      className="fixed inset-x-0 top-0 z-50 flex items-end justify-center"
+      style={{ height: vpHeight, background: 'rgba(0,0,0,0.75)' }}
+    >
       <div className="w-full max-w-[420px] flex flex-col shadow-2xl"
-        style={{ background: '#0e0e0e', borderRadius: '14px 14px 0 0', borderTop: '1px solid #1a1919', maxHeight: '88vh' }}>
+        style={{ background: '#0e0e0e', borderRadius: '14px 14px 0 0', borderTop: '1px solid #1a1919', maxHeight: Math.round(vpHeight * 0.92) }}>
 
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">

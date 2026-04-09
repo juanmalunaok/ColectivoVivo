@@ -123,27 +123,12 @@ interface Props {
   filterLine?:      string | null
   followedTripId?:  string | null
   activeLine?:      string | null
+  hasActiveTrip?:   boolean
   onFollow?:        (tripId: string) => void
   onUnfollow?:      () => void
 }
 
-function UserPositionMarker({ onPosition }: { onPosition: (pos: { lat: number; lng: number }) => void }) {
-  const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null)
-
-  useEffect(() => {
-    if (!('geolocation' in navigator)) return
-    const watchId = navigator.geolocation.watchPosition(
-      (p) => {
-        const next = { lat: p.coords.latitude, lng: p.coords.longitude }
-        setPos(next)
-        onPosition(next)
-      },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
-    )
-    return () => navigator.geolocation.clearWatch(watchId)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
+function UserPositionMarker({ pos }: { pos: { lat: number; lng: number } | null }) {
   if (!pos) return null
 
   return (
@@ -193,8 +178,19 @@ function RoutePolyline({ lineNumber }: { lineNumber: string }) {
   )
 }
 
-export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filterLine, followedTripId, activeLine, onFollow, onUnfollow }: Props) {
+export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filterLine, followedTripId, activeLine, hasActiveTrip, onFollow, onUnfollow }: Props) {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
+
+  // Seguimiento de posición siempre activo (para el botón centrar y AutoCenterOnLoad)
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return
+    const watchId = navigator.geolocation.watchPosition(
+      (p) => setUserPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
+    )
+    return () => navigator.geolocation.clearWatch(watchId)
+  }, [])
 
   const visibleTrips = filterLine
     ? trips.filter((t) => t.lineNumber === filterLine)
@@ -218,7 +214,7 @@ export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filte
           style={{ width: '100%', height: '100%' }}
           styles={DARK_STYLE}
         >
-          <UserPositionMarker onPosition={setUserPos} />
+          {!hasActiveTrip && <UserPositionMarker pos={userPos} />}
           <AutoCenterOnLoad pos={userPos} />
           {selfLat && selfLng && !followedTripId && <SelfCentering lat={selfLat} lng={selfLng} />}
           {followedTripId && <FollowCentering trips={trips} followedTripId={followedTripId} />}

@@ -114,6 +114,7 @@ export default function HomePage() {
           isAdmin={isAdmin}
           selfLat={lat}
           selfLng={lng}
+          hasActiveTrip={flowStep === 'active'}
           filterLine={filterLine}
           followedTripId={followedTripId}
           activeLine={flowStep === 'active' ? trip.lineNumber : null}
