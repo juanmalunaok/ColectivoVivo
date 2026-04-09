@@ -73,6 +73,10 @@ main {
   50%       { box-shadow: 0 0 0 8px rgba(255,94,7,0.1),  0 4px 24px rgba(255,94,7,0.7); }
 }
 
+@keyframes ping {
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}
+
 /* ── Ocultar UI de Google Maps ─────────────────────────────────── */
 .gm-style-cc,
 .gm-bundled-control,

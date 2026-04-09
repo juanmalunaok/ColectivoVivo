@@ -1,7 +1,7 @@
 'use client'
 
-import { APIProvider, Map, Polyline, useMap } from '@vis.gl/react-google-maps'
-import { useEffect, useCallback } from 'react'
+import { APIProvider, Map, Polyline, useMap, AdvancedMarker } from '@vis.gl/react-google-maps'
+import { useEffect, useCallback, useState } from 'react'
 import { BusMarker } from './BusMarker'
 import { useRouteShape } from '@/hooks/useRouteShape'
 import type { ActiveTrip } from '@/types'
@@ -108,6 +108,52 @@ interface Props {
   onUnfollow?:      () => void
 }
 
+function UserPositionMarker() {
+  const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null)
+
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return
+    const watchId = navigator.geolocation.watchPosition(
+      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
+    )
+    return () => navigator.geolocation.clearWatch(watchId)
+  }, [])
+
+  if (!pos) return null
+
+  return (
+    <AdvancedMarker position={pos} zIndex={20}>
+      <div style={{ position: 'relative', width: 20, height: 20 }}>
+        {/* Pulso exterior */}
+        <div style={{
+          position: 'absolute',
+          inset: -6,
+          borderRadius: '50%',
+          background: 'rgba(255,94,7,0.2)',
+          animation: 'ping 1.5s cubic-bezier(0,0,0.2,1) infinite',
+        }} />
+        {/* Círculo exterior blanco */}
+        <div style={{
+          position: 'absolute',
+          inset: -3,
+          borderRadius: '50%',
+          background: 'white',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+        }} />
+        {/* Círculo interior naranja */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '50%',
+          background: '#ff5e07',
+        }} />
+      </div>
+    </AdvancedMarker>
+  )
+}
+
 function RoutePolyline({ lineNumber }: { lineNumber: string }) {
   const coords = useRouteShape(lineNumber)
   if (!coords || coords.length < 2) return null
@@ -144,6 +190,7 @@ export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filte
           style={{ width: '100%', height: '100%' }}
           styles={DARK_STYLE}
         >
+          <UserPositionMarker />
           {selfLat && selfLng && !followedTripId && <SelfCentering lat={selfLat} lng={selfLng} />}
           {followedTripId && <FollowCentering trips={trips} followedTripId={followedTripId} />}
           {routeLine && <RoutePolyline lineNumber={routeLine} />}
