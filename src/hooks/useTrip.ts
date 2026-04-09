@@ -28,6 +28,8 @@ export function useTrip(userId: string | undefined) {
       lng: number,
     ) => {
       if (!userId) throw new Error('Usuario no autenticado')
+      // Evitar doble-creación si el botón se toca dos veces o hay doble render
+      if (tripIdRef.current) return
 
       const tripId = await createTrip(userId, lineNumber, branchId, branchName, lat, lng)
       tripIdRef.current = tripId

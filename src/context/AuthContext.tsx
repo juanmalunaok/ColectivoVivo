@@ -17,8 +17,9 @@ import {
   updateProfile,
   type User,
 } from 'firebase/auth'
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, firestore, googleProvider } from '@/lib/firebase'
+import { cleanupUserTrips } from '@/lib/realtimeDb'
 import type { AppUser, AuthContextType } from '@/types'
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -35,7 +36,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const snap    = await getDoc(userRef)
 
     if (snap.exists()) {
-      setAppUser(snap.data() as AppUser)
+      const data = snap.data() as AppUser
+      // Limpiar trips huérfanos de sesiones anteriores
+      await cleanupUserTrips(firebaseUser.uid)
+      // Si Firestore aún tiene un activeTrip registrado, limpiarlo también
+      if (data.activeTrip) {
+        await updateDoc(userRef, { activeTrip: null })
+        data.activeTrip = null
+      }
+      setAppUser(data)
     } else {
       const newUser: AppUser = {
         uid:             firebaseUser.uid,
