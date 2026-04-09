@@ -51,12 +51,33 @@ export default function HomePage() {
 
   async function handleConsentAccepted() {
     const fallback = { lat: -34.6037, lng: -58.3816 }
+
+    // Obtener posición real antes de crear el viaje.
+    // useGeolocation está inactivo hasta que flowStep='active', por eso
+    // pedimos la posición explícitamente para evitar que el marcador
+    // aparezca en las coordenadas de fallback (centro de CABA).
+    let initialLat = lat ?? fallback.lat
+    let initialLng = lng ?? fallback.lng
+
+    if (!lat && 'geolocation' in navigator) {
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 6000,
+          }),
+        )
+        initialLat = pos.coords.latitude
+        initialLng = pos.coords.longitude
+      } catch (_) {}
+    }
+
     await startTrip(
       pending!.line.number,
       pending!.branch.id,
       pending!.branch.name,
-      lat ?? fallback.lat,
-      lng ?? fallback.lng,
+      initialLat,
+      initialLng,
     )
     setFlowStep('active')
     setPending(null)

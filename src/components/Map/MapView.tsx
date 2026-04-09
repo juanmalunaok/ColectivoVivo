@@ -1,7 +1,7 @@
 'use client'
 
 import { APIProvider, Map, Polyline, useMap, AdvancedMarker } from '@vis.gl/react-google-maps'
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 import { BusMarker } from './BusMarker'
 import { useRouteShape } from '@/hooks/useRouteShape'
 import type { ActiveTrip } from '@/types'
@@ -50,10 +50,29 @@ function SelfCentering({ lat, lng }: { lat: number; lng: number }) {
   return null
 }
 
-function CenterButton() {
+function AutoCenterOnLoad({ pos }: { pos: { lat: number; lng: number } | null }) {
+  const map = useMap()
+  const centeredRef = useRef(false)
+  useEffect(() => {
+    if (map && pos && !centeredRef.current) {
+      map.panTo(pos)
+      map.setZoom(15)
+      centeredRef.current = true
+    }
+  }, [map, pos])
+  return null
+}
+
+function CenterButton({ cachedPos }: { cachedPos: { lat: number; lng: number } | null }) {
   const map = useMap()
   const handleCenter = useCallback(() => {
-    if (!map || !('geolocation' in navigator)) return
+    if (!map) return
+    if (cachedPos) {
+      map.panTo(cachedPos)
+      map.setZoom(15)
+      return
+    }
+    if (!('geolocation' in navigator)) return
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude })
@@ -62,7 +81,7 @@ function CenterButton() {
       () => {},
       { enableHighAccuracy: true, timeout: 8000 },
     )
-  }, [map])
+  }, [map, cachedPos])
 
   return (
     <button
@@ -108,47 +127,54 @@ interface Props {
   onUnfollow?:      () => void
 }
 
-function UserPositionMarker() {
+function UserPositionMarker({ onPosition }: { onPosition: (pos: { lat: number; lng: number }) => void }) {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null)
 
   useEffect(() => {
     if (!('geolocation' in navigator)) return
     const watchId = navigator.geolocation.watchPosition(
-      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (p) => {
+        const next = { lat: p.coords.latitude, lng: p.coords.longitude }
+        setPos(next)
+        onPosition(next)
+      },
       () => {},
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
     )
     return () => navigator.geolocation.clearWatch(watchId)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!pos) return null
 
   return (
     <AdvancedMarker position={pos} zIndex={20}>
-      <div style={{ position: 'relative', width: 20, height: 20 }}>
+      <div style={{ position: 'relative', width: 36, height: 36 }}>
         {/* Pulso exterior */}
         <div style={{
           position: 'absolute',
-          inset: -6,
+          inset: -8,
           borderRadius: '50%',
-          background: 'rgba(255,94,7,0.2)',
-          animation: 'ping 1.5s cubic-bezier(0,0,0.2,1) infinite',
+          background: 'rgba(255,94,7,0.15)',
+          animation: 'ping 1.8s cubic-bezier(0,0,0.2,1) infinite',
         }} />
-        {/* Círculo exterior blanco */}
-        <div style={{
-          position: 'absolute',
-          inset: -3,
-          borderRadius: '50%',
-          background: 'white',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
-        }} />
-        {/* Círculo interior naranja */}
+        {/* Contenedor circular */}
         <div style={{
           position: 'absolute',
           inset: 0,
           borderRadius: '50%',
-          background: '#ff5e07',
-        }} />
+          background: '#141414',
+          border: '2.5px solid #ff5e07',
+          boxShadow: '0 2px 10px rgba(255,94,7,0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          {/* Ícono persona */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff5e07">
+            <circle cx="12" cy="6" r="4" />
+            <path d="M12 13c-4.5 0-7 2.7-7 5v1h14v-1c0-2.3-2.5-5-7-5z" />
+          </svg>
+        </div>
       </div>
     </AdvancedMarker>
   )
@@ -168,6 +194,8 @@ function RoutePolyline({ lineNumber }: { lineNumber: string }) {
 }
 
 export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filterLine, followedTripId, activeLine, onFollow, onUnfollow }: Props) {
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
+
   const visibleTrips = filterLine
     ? trips.filter((t) => t.lineNumber === filterLine)
     : trips
@@ -190,7 +218,8 @@ export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filte
           style={{ width: '100%', height: '100%' }}
           styles={DARK_STYLE}
         >
-          <UserPositionMarker />
+          <UserPositionMarker onPosition={setUserPos} />
+          <AutoCenterOnLoad pos={userPos} />
           {selfLat && selfLng && !followedTripId && <SelfCentering lat={selfLat} lng={selfLng} />}
           {followedTripId && <FollowCentering trips={trips} followedTripId={followedTripId} />}
           {routeLine && <RoutePolyline lineNumber={routeLine} />}
@@ -206,7 +235,7 @@ export function MapView({ trips, currentUserId, isAdmin, selfLat, selfLng, filte
             />
           ))}
         </Map>
-        <CenterButton />
+        <CenterButton cachedPos={userPos} />
       </div>
     </APIProvider>
   )
