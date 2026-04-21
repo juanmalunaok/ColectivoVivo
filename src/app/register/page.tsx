@@ -47,17 +47,17 @@ export default function RegisterPage() {
   }
 
   const inputBase = {
-    background: '#1a1919',
-    border: '1px solid #262626',
+    background: '#1c1c22',
+    border: '0.5px solid #2a2a32',
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5 py-8" style={{ background: '#0e0e0e' }}>
+    <div className="min-h-screen flex items-center justify-center px-5 py-8" style={{ background: '#0a0a0c' }}>
       <div className="w-full max-w-[360px]">
 
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-3"
-            style={{ background: '#ff5e07' }}>
+            style={{ background: 'oklch(72% 0.15 145)' }}>
             <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
               <path d="M8 6h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="black" strokeWidth="1.5"/>
               <circle cx="9" cy="17" r="1.5" fill="black"/>
@@ -66,10 +66,10 @@ export default function RegisterPage() {
             </svg>
           </div>
           <h1 className="font-headline font-black text-2xl text-white uppercase tracking-tight italic">Crear cuenta</h1>
-          <p className="text-sm mt-1" style={{ color: '#adaaaa' }}>Unite a la comunidad</p>
+          <p className="text-sm mt-1" style={{ color: '#a1a1aa' }}>Unite a la comunidad</p>
         </div>
 
-        <div className="rounded-2xl p-6" style={{ background: '#141414', border: '1px solid #262626' }}>
+        <div className="rounded-2xl p-6" style={{ background: '#141418', border: '0.5px solid #2a2a32' }}>
           <form onSubmit={handleRegister} className="space-y-3.5">
             {[
               { label: 'Nombre', id: 'name', type: 'text', value: name, set: setName, placeholder: 'Tu nombre', auto: 'name' },
@@ -77,7 +77,7 @@ export default function RegisterPage() {
               { label: 'Contraseña', id: 'password', type: 'password', value: password, set: setPassword, placeholder: 'Mínimo 6 caracteres', auto: 'new-password' },
             ].map(({ label, id, type, value, set, placeholder, auto }) => (
               <div key={id}>
-                <label htmlFor={id} className="block text-xs font-medium mb-1.5" style={{ color: '#adaaaa' }}>
+                <label htmlFor={id} className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>
                   {label}
                 </label>
                 <input
@@ -91,8 +91,8 @@ export default function RegisterPage() {
                   minLength={type === 'password' ? 6 : undefined}
                   className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
                   style={inputBase}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff5e07'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#262626'}
+                  onFocus={(e) => e.currentTarget.style.borderColor = 'oklch(72% 0.15 145)'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a32'}
                 />
               </div>
             ))}
@@ -108,18 +108,18 @@ export default function RegisterPage() {
                 <div
                   className="w-4 h-4 rounded flex items-center justify-center transition"
                   style={{
-                    background: terms ? '#ff5e07' : '#1a1919',
-                    border: terms ? '1px solid #ff5e07' : '1px solid #262626',
+                    background: terms ? 'oklch(72% 0.15 145)' : '#1c1c22',
+                    border: terms ? '1px solid oklch(72% 0.15 145)' : '0.5px solid #2a2a32',
                   }}
                 >
                   {terms && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </div>
               </div>
-              <span className="text-xs leading-relaxed" style={{ color: '#adaaaa' }}>
+              <span className="text-xs leading-relaxed" style={{ color: '#a1a1aa' }}>
                 Acepto los{' '}
-                <Link href="/terms" style={{ color: '#ff9064' }}>Términos</Link>{' '}
+                <Link href="/terms" style={{ color: 'oklch(85% 0.13 145)' }}>Términos</Link>{' '}
                 y la{' '}
-                <Link href="/privacy" style={{ color: '#ff9064' }}>Política de Privacidad</Link>
+                <Link href="/privacy" style={{ color: 'oklch(85% 0.13 145)' }}>Política de Privacidad</Link>
                 , incluyendo compartir ubicación GPS de forma <strong className="text-white/60">anónima</strong>.
               </span>
             </label>
@@ -134,22 +134,22 @@ export default function RegisterPage() {
               type="submit"
               disabled={submitting}
               className="w-full py-4 rounded-full font-headline font-bold text-black text-sm uppercase tracking-tight transition disabled:opacity-50 active:scale-95"
-              style={{ background: '#ff5e07', boxShadow: '0 4px 14px rgba(255,94,7,0.4)' }}
+              style={{ background: 'oklch(72% 0.15 145)', color: '#001b0a', boxShadow: '0 4px 14px oklch(72% 0.15 145 / 0.4)' }}
             >
               {submitting ? 'Creando cuenta...' : 'Crear cuenta'}
             </button>
           </form>
 
           <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px" style={{ background: '#262626' }} />
-            <span className="text-xs" style={{ color: '#adaaaa' }}>o</span>
-            <div className="flex-1 h-px" style={{ background: '#262626' }} />
+            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
+            <span className="text-xs" style={{ color: '#a1a1aa' }}>o</span>
+            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
           </div>
 
           <button
             onClick={handleGoogle}
             className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-full text-sm font-medium transition active:scale-95"
-            style={{ background: '#1a1919', border: '1px solid #262626', color: '#ffffff' }}
+            style={{ background: '#1c1c22', border: '0.5px solid #2a2a32', color: '#f5f5f7' }}
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -161,9 +161,9 @@ export default function RegisterPage() {
           </button>
         </div>
 
-        <p className="text-center text-sm mt-5" style={{ color: '#adaaaa' }}>
+        <p className="text-center text-sm mt-5" style={{ color: '#a1a1aa' }}>
           ¿Ya tenés cuenta?{' '}
-          <Link href="/login" className="font-bold" style={{ color: '#ff9064' }}>
+          <Link href="/login" className="font-bold" style={{ color: 'oklch(85% 0.13 145)' }}>
             Iniciá sesión
           </Link>
         </p>

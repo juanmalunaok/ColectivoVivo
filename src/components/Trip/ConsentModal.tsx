@@ -9,66 +9,118 @@ interface Props {
 
 export function ConsentModal({ lineNumber, branchName, onAccept, onCancel }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: 'rgba(0,0,0,0.80)', backdropFilter: 'blur(6px)' }}>
-      <div className="w-full max-w-[420px] p-6 shadow-2xl"
-        style={{ background: '#000000', borderTop: '1px solid #1a1919', borderRadius: '14px 14px 0 0' }}>
-
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+    >
+      <div
+        className="w-full max-w-[420px] p-6 shadow-2xl"
+        style={{
+          background: '#0a0a0c',
+          borderTop: '0.5px solid #2a2a32',
+          borderRadius: '22px 22px 0 0',
+          animation: 'cv-sheet-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
         {/* Handle */}
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-1 rounded-full" style={{ background: '#262626' }} />
+          <div className="w-10 h-1.5 rounded-full" style={{ background: '#2a2a32' }} />
         </div>
 
-        {/* Icono */}
-        <div className="flex items-center justify-center w-14 h-14 rounded-xl mx-auto mb-5"
-          style={{ background: 'rgba(255,94,7,0.15)', border: '1px solid rgba(255,94,7,0.25)' }}>
-          <svg className="w-7 h-7" style={{ color: '#ff5e07' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
+        {/* Badge EN VIVO */}
+        <div
+          className="mx-auto mb-4"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 11px', borderRadius: 999,
+            background: 'oklch(72% 0.15 145 / 0.14)',
+            border: '0.5px solid oklch(72% 0.15 145 / 0.3)',
+          }}
+        >
+          <span className="cv-dot-live" />
+          <span className="cv-mono" style={{ fontSize: 11, color: 'oklch(85% 0.13 145)', fontWeight: 500, letterSpacing: 0.3 }}>
+            COMPARTIR UBICACIÓN
+          </span>
         </div>
 
-        <h2 className="font-headline font-bold text-xl text-white text-center mb-1 uppercase tracking-tight">
-          Compartir ubicación GPS
+        <h2
+          className="font-headline"
+          style={{
+            fontSize: 26, fontWeight: 700, color: '#f5f5f7',
+            textAlign: 'center', margin: '0 0 6px', letterSpacing: -0.04 * 26, lineHeight: 1.1,
+          }}
+        >
+          Vas a compartir tu viaje
         </h2>
-        <p className="text-sm text-center mb-6" style={{ color: '#adaaaa' }}>
-          Vas a compartir tu posición en el{' '}
-          <span className="font-bold" style={{ color: '#ff9064' }}>colectivo {lineNumber}</span>
-          {' '}— {branchName}
+        <p
+          style={{
+            fontSize: 14, color: '#a1a1aa', textAlign: 'center',
+            margin: '0 0 20px', letterSpacing: -0.1,
+          }}
+        >
+          Línea{' '}
+          <span className="font-headline" style={{ color: 'oklch(85% 0.13 145)', fontWeight: 700 }}>
+            {lineNumber}
+          </span>
+          {' · '}
+          {branchName}
         </p>
 
         {/* Info */}
-        <div className="rounded-xl p-4 space-y-3 mb-6"
-          style={{ background: '#141414', border: '1px solid #262626' }}>
+        <div
+          style={{
+            background: '#141418',
+            border: '0.5px solid #2a2a32',
+            borderRadius: 14,
+            padding: 16, marginBottom: 20,
+            display: 'flex', flexDirection: 'column', gap: 10,
+          }}
+        >
           {[
             'Tu ubicación es 100% anónima. Nadie ve tu nombre ni foto.',
             'El marcador desaparece automáticamente al terminar el viaje.',
             'Podés cancelar en cualquier momento tocando "Dejar de compartir".',
             'Los datos de ubicación no se almacenan tras finalizar el viaje.',
           ].map((text, i) => (
-            <div key={i} className="flex items-start gap-2.5">
-              <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{ background: 'rgba(255,94,7,0.25)' }}>
-                <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                  <path d="M1 3l2 2 4-4" stroke="#ff5e07" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div
+                style={{
+                  width: 18, height: 18, borderRadius: '50%',
+                  background: 'oklch(72% 0.15 145 / 0.18)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, marginTop: 1,
+                }}
+              >
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                  <path d="M1 4l2.5 2.5L9 1" stroke="oklch(78% 0.16 145)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <span className="text-xs leading-relaxed" style={{ color: '#adaaaa' }}>{text}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.5, color: '#a1a1aa' }}>{text}</span>
             </div>
           ))}
         </div>
 
         <button
           onClick={onAccept}
-          className="w-full py-4 rounded-full font-headline font-bold text-black text-sm uppercase tracking-tight mb-2 transition active:scale-95"
-          style={{ background: '#ff5e07', boxShadow: '0 4px 14px rgba(255,94,7,0.4)' }}
+          className="font-headline"
+          style={{
+            width: '100%', height: 54, borderRadius: 14,
+            background: 'oklch(72% 0.15 145)', color: '#001b0a',
+            border: 0, cursor: 'pointer',
+            fontSize: 16, fontWeight: 700, letterSpacing: -0.3,
+            boxShadow: '0 4px 14px oklch(72% 0.15 145 / 0.4)',
+            marginBottom: 8,
+          }}
         >
-          Acepto — Activar viaje
+          Activar viaje
         </button>
         <button
           onClick={onCancel}
-          className="w-full py-3 rounded-full text-sm font-headline transition active:scale-95"
-          style={{ color: '#adaaaa' }}
+          style={{
+            width: '100%', height: 44, borderRadius: 14,
+            background: 'transparent', border: 0, cursor: 'pointer',
+            color: '#a1a1aa', fontSize: 14, fontWeight: 500,
+          }}
         >
           Cancelar
         </button>

@@ -5,10 +5,10 @@ import { AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import { reportTrip, endTrip } from '@/lib/realtimeDb'
 import type { ActiveTrip, Occupancy } from '@/types'
 
-const OCCUPANCY_LABEL: Record<Occupancy, { emoji: string; label: string; color: string }> = {
-  empty:    { emoji: '🟢', label: 'Vacío',  color: '#4ade80' },
-  moderate: { emoji: '🟡', label: 'Normal', color: '#fbbf24' },
-  full:     { emoji: '🔴', label: 'Lleno',  color: '#f87171' },
+const OCCUPANCY: Record<Occupancy, { label: string; color: string; n: number }> = {
+  empty:    { label: 'Vacío',  color: 'oklch(72% 0.15 145)', n: 1 },
+  moderate: { label: 'Normal', color: 'oklch(78% 0.13 85)',  n: 2 },
+  full:     { label: 'Lleno',  color: 'oklch(68% 0.17 25)',  n: 3 },
 }
 
 interface Props {
@@ -18,6 +18,21 @@ interface Props {
   isAdmin?:      boolean
   onFollow?:     () => void
   onUnfollow?:   () => void
+}
+
+function OccupancyDots({ level, size = 5 }: { level: Occupancy; size?: number }) {
+  const info = OCCUPANCY[level]
+  return (
+    <span style={{ display: 'inline-flex', gap: 2, verticalAlign: 'middle' }}>
+      {[1, 2, 3].map((i) => (
+        <span key={i} style={{
+          width: size, height: size, borderRadius: size,
+          background: i <= info.n ? info.color : '#2a2a32',
+          display: 'inline-block',
+        }} />
+      ))}
+    </span>
+  )
 }
 
 export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, onUnfollow }: Props) {
@@ -57,20 +72,28 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
     <>
       <AdvancedMarker position={position} onClick={() => setOpen(true)}>
         <div style={{ position: 'relative', display: 'inline-block' }}>
+          {(isOwn || isFollowed) && (
+            <div style={{
+              position: 'absolute', inset: -6, borderRadius: 999,
+              background: 'oklch(72% 0.15 145 / 0.28)',
+              animation: 'cv-ping 1.8s cubic-bezier(0,0,0.2,1) infinite',
+            }} />
+          )}
           <div
-            className={`bus-marker ${isOwn ? 'own' : ''} ${reported ? 'reported' : ''} ${isFollowed ? 'followed' : ''}`}
+            className={`cv-marker ${isOwn ? 'own' : ''} ${reported ? 'reported' : ''} ${isFollowed ? 'followed' : ''}`}
             title={`Línea ${trip.lineNumber} — ${trip.branchName}`}
+            style={{ position: 'relative' }}
           >
             {trip.lineNumber}
           </div>
-          {trip.occupancy && (
-            <span style={{
-              position: 'absolute', top: -4, right: -4,
-              fontSize: 11, lineHeight: 1,
-            }}>
-              {OCCUPANCY_LABEL[trip.occupancy].emoji}
-            </span>
-          )}
+          {/* Punta inferior */}
+          <div style={{
+            position: 'absolute',
+            left: '50%', bottom: -3,
+            transform: 'translateX(-50%) rotate(45deg)',
+            width: 6, height: 6,
+            background: (isOwn || isFollowed) ? 'oklch(72% 0.15 145)' : '#fff',
+          }} />
         </div>
       </AdvancedMarker>
 
@@ -78,29 +101,65 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
         <InfoWindow
           position={position}
           onCloseClick={() => setOpen(false)}
-          pixelOffset={[0, -24]}
+          pixelOffset={[0, -28]}
         >
-          <div style={{ background: '#141414', borderRadius: 14, padding: '14px 16px', minWidth: 170, border: '1px solid #262626' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="font-headline font-black inline-flex items-center justify-center rounded-xl px-2.5 py-1 text-sm text-black"
-                style={{ background: isOwn ? '#ff9064' : '#ff5e07' }}>
+          <div style={{
+            background: '#141418',
+            borderRadius: 14,
+            padding: '14px 16px',
+            minWidth: 210,
+            border: '0.5px solid #2a2a32',
+            fontFamily: 'var(--font-body), Inter, sans-serif',
+          }}>
+            {/* EN VIVO badge */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '3px 9px', borderRadius: 999,
+              background: 'oklch(72% 0.15 145 / 0.16)',
+              marginBottom: 10,
+            }}>
+              <span className="cv-dot-live" />
+              <span className="cv-mono" style={{ fontSize: 10, color: 'oklch(85% 0.13 145)', fontWeight: 500, letterSpacing: 0.3 }}>
+                EN VIVO
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <span className="font-headline" style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                minWidth: 46, height: 36, padding: '0 12px',
+                borderRadius: 999,
+                background: isOwn ? 'oklch(72% 0.15 145)' : '#fff',
+                color: isOwn ? '#001b0a' : '#000',
+                fontWeight: 800, fontSize: 17, letterSpacing: -0.5,
+              }}>
                 {trip.lineNumber}
               </span>
               {isOwn && (
-                <span className="text-xs font-bold font-headline" style={{ color: '#ff9064' }}>Sos vos</span>
+                <span className="font-headline" style={{ fontSize: 12, color: 'oklch(85% 0.13 145)', fontWeight: 700 }}>
+                  Sos vos
+                </span>
               )}
             </div>
 
-            <p className="text-xs mb-1 font-medium" style={{ color: '#adaaaa' }}>{trip.branchName}</p>
+            <p className="font-headline" style={{ fontSize: 14, color: '#f5f5f7', fontWeight: 600, margin: '0 0 6px', letterSpacing: -0.2 }}>
+              {trip.branchName}
+            </p>
 
             {trip.occupancy && (
-              <p className="text-xs mb-1" style={{ color: OCCUPANCY_LABEL[trip.occupancy].color }}>
-                {OCCUPANCY_LABEL[trip.occupancy].emoji} {OCCUPANCY_LABEL[trip.occupancy].label}
+              <p style={{
+                fontSize: 11, color: '#a1a1aa', margin: '0 0 4px',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <OccupancyDots level={trip.occupancy} />
+                <span>{OCCUPANCY[trip.occupancy].label}</span>
+                {trip.speed != null && (
+                  <>
+                    <span style={{ color: '#3a3a44' }}>·</span>
+                    <span className="cv-tabular">{trip.speed} km/h</span>
+                  </>
+                )}
               </p>
-            )}
-
-            {trip.speed != null && (
-              <p className="text-xs" style={{ color: '#adaaaa' }}>{trip.speed} km/h</p>
             )}
 
             <button
@@ -108,25 +167,32 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
                 if (isFollowed) { onUnfollow?.() } else { onFollow?.() }
                 setOpen(false)
               }}
-              className="mt-3 w-full text-xs font-headline font-bold py-2 rounded-full transition uppercase tracking-tight"
+              className="font-headline"
               style={{
-                background: isFollowed ? 'rgba(255,94,7,0.15)' : 'rgba(255,94,7,0.1)',
-                color: '#ff9064',
-                border: `1px solid ${isFollowed ? 'rgba(255,94,7,0.4)' : 'rgba(255,94,7,0.2)'}`,
+                marginTop: 10, width: '100%',
+                height: 38, borderRadius: 12,
+                fontSize: 13, fontWeight: 700, letterSpacing: -0.2,
+                cursor: 'pointer',
+                background: isFollowed ? '#1c1c22' : '#fff',
+                color: isFollowed ? '#f5f5f7' : '#000',
+                border: isFollowed ? '0.5px solid #2a2a32' : '0',
               }}
             >
-              {isFollowed ? 'Dejar de seguir' : 'Seguir'}
+              {isFollowed ? 'Dejar de seguir' : 'Seguir este'}
             </button>
 
             {!isOwn && (
               <button
                 onClick={handleReport}
                 disabled={reported || reporting}
-                className="mt-1.5 w-full text-xs font-medium py-1.5 rounded-full transition disabled:opacity-40"
                 style={{
-                  background: reported ? 'rgba(75,85,99,0.2)' : 'rgba(255,113,108,0.1)',
-                  color: reported ? '#6b7280' : '#ff716c',
-                  border: `1px solid ${reported ? 'rgba(75,85,99,0.2)' : 'rgba(255,113,108,0.2)'}`,
+                  marginTop: 6, width: '100%',
+                  height: 32, borderRadius: 10,
+                  fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                  background: reported ? '#1c1c22' : 'transparent',
+                  color: reported ? '#6b6b75' : '#a1a1aa',
+                  border: '0.5px solid #2a2a32',
+                  opacity: reported ? 0.5 : 1,
                 }}
               >
                 {reported ? 'Reportado' : reporting ? 'Reportando...' : 'Reportar marcador'}
@@ -137,14 +203,18 @@ export function BusMarker({ trip, currentUserId, isFollowed, isAdmin, onFollow, 
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="mt-1.5 w-full text-xs font-bold py-1.5 rounded-full transition disabled:opacity-40"
+                className="font-headline"
                 style={{
-                  background: 'rgba(255,113,108,0.2)',
-                  color: '#ff716c',
-                  border: '1px solid rgba(255,113,108,0.4)',
+                  marginTop: 6, width: '100%',
+                  height: 32, borderRadius: 10,
+                  fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                  background: 'oklch(30% 0.15 25 / 0.4)',
+                  color: 'oklch(72% 0.18 25)',
+                  border: '0.5px solid oklch(50% 0.18 25 / 0.4)',
+                  opacity: deleting ? 0.4 : 1,
                 }}
               >
-                {deleting ? 'Eliminando...' : '🗑 Eliminar (admin)'}
+                {deleting ? 'Eliminando...' : 'Eliminar (admin)'}
               </button>
             )}
           </div>

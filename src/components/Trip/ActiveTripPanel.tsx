@@ -4,14 +4,10 @@ import { useEffect, useState } from 'react'
 import type { TripState, Occupancy } from '@/types'
 import type { KeepAwakeMethod } from '@/hooks/useKeepAwake'
 
-const OCCUPANCY_OPTIONS: {
-  value: Occupancy
-  label: string
-  icon: string
-}[] = [
-  { value: 'empty',    label: 'Vacío',  icon: 'person'  },
-  { value: 'moderate', label: 'Normal', icon: 'group'   },
-  { value: 'full',     label: 'Lleno',  icon: 'groups'  },
+const OCCUPANCY_OPTIONS: { value: Occupancy; label: string; n: number; color: string }[] = [
+  { value: 'empty',    label: 'Vacío',  n: 1, color: 'oklch(72% 0.15 145)' },
+  { value: 'moderate', label: 'Normal', n: 2, color: 'oklch(78% 0.13 85)' },
+  { value: 'full',     label: 'Lleno',  n: 3, color: 'oklch(68% 0.17 25)' },
 ]
 
 interface Props {
@@ -23,6 +19,37 @@ interface Props {
   isIOS?:             boolean
   onStop:             () => Promise<void>
   onOccupancyChange:  (o: Occupancy) => Promise<void>
+}
+
+function OccupancyDots({ n, color, size = 6 }: { n: number; color: string; size?: number }) {
+  return (
+    <span style={{ display: 'inline-flex', gap: 3 }}>
+      {[1, 2, 3].map((i) => (
+        <span key={i} style={{
+          width: size, height: size, borderRadius: size,
+          background: i <= n ? color : '#2a2a32',
+          display: 'inline-block',
+        }} />
+      ))}
+    </span>
+  )
+}
+
+function Metric({ label, value, unit, icon }: { label: string; value: string | number; unit: string; icon: React.ReactNode }) {
+  return (
+    <div style={{ padding: '10px 12px', borderRadius: 14, background: '#141418', border: '0.5px solid #1f1f26' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        {icon}
+        <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500, letterSpacing: -0.1 }}>{label}</span>
+      </div>
+      <div style={{ marginTop: 4, display: 'flex', alignItems: 'baseline', gap: 3 }}>
+        <span className="font-headline cv-tabular" style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.5, color: '#f5f5f7' }}>
+          {value}
+        </span>
+        <span style={{ fontSize: 11, color: '#6b6b75', fontWeight: 500 }}>{unit}</span>
+      </div>
+    </div>
+  )
 }
 
 export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAwakeMethod, isIOS, onStop, onOccupancyChange }: Props) {
@@ -37,10 +64,8 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
   }, [])
 
   function formatTime(s: number) {
-    const h = Math.floor(s / 3600)
-    const m = Math.floor((s % 3600) / 60)
+    const m = Math.floor(s / 60)
     const sec = s % 60
-    if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`
     return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
   }
 
@@ -61,114 +86,194 @@ export function ActiveTripPanel({ trip, speed, geoError, keepAwakeActive, keepAw
   }
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
-      <div className="pointer-events-auto shadow-2xl"
-        style={{ background: '#000000', borderTop: '1px solid #1a1919', borderRadius: '14px 14px 0 0' }}>
+    <div
+      className="absolute bottom-0 left-0 right-0 z-20"
+      style={{
+        background: '#0a0a0c',
+        borderRadius: '22px 22px 0 0',
+        boxShadow: '0 -1px 0 rgba(255,255,255,0.06), 0 -20px 40px rgba(0,0,0,0.5)',
+        animation: 'cv-sheet-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        paddingBottom: 34,
+      }}
+    >
+      {/* Handle */}
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
+        <div style={{ width: 36, height: 5, borderRadius: 100, background: '#2a2a32' }} />
+      </div>
 
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full" style={{ background: '#262626' }} />
+      {/* EN VIVO + tiempo */}
+      <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '4px 10px', borderRadius: 999,
+          background: 'oklch(72% 0.15 145 / 0.16)',
+        }}>
+          <span className="cv-dot-live" />
+          <span className="cv-mono" style={{ fontSize: 10, color: 'oklch(85% 0.13 145)', fontWeight: 500, letterSpacing: 0.3 }}>
+            EN VIVO
+          </span>
         </div>
+        <span className="font-headline cv-tabular" style={{ fontSize: 13, color: '#a1a1aa', fontWeight: 600 }}>
+          {formatTime(elapsed)}
+        </span>
+      </div>
 
-        {/* Destino / status bar */}
-        <div className="flex items-center gap-3 px-5 py-3 mx-4 mb-3 rounded-[14px]"
-          style={{ background: '#141414' }}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl font-headline font-extrabold text-black text-base flex-shrink-0"
-            style={{ background: '#ff5e07' }}>
-            {trip.lineNumber}
+      {/* Línea + ramal */}
+      <div style={{ padding: '14px 20px 0', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <span className="font-headline" style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          minWidth: 64, height: 52, padding: '0 16px',
+          borderRadius: 999,
+          background: 'oklch(72% 0.15 145)', color: '#001b0a',
+          fontWeight: 800, fontSize: 24, letterSpacing: -0.5,
+          flexShrink: 0,
+        }}>
+          {trip.lineNumber}
+        </span>
+        <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+          <div style={{ fontSize: 11, color: 'oklch(85% 0.13 145)', letterSpacing: 0.3, textTransform: 'uppercase', fontWeight: 600 }}>
+            Tu viaje
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs uppercase font-headline font-bold tracking-widest leading-none mb-0.5"
-              style={{ color: '#adaaaa' }}>En camino</p>
-            <p className="font-headline font-bold text-white text-sm leading-tight truncate">{trip.branchName}</p>
-          </div>
-          <div className="text-right flex-shrink-0">
-            <p className="font-headline font-bold text-sm" style={{ color: '#ff9064' }}>{formatTime(elapsed)}</p>
-            <p className="text-xs uppercase tracking-tighter" style={{ color: '#adaaaa' }}>Activo</p>
+          <div className="font-headline" style={{
+            fontSize: 19, fontWeight: 700, letterSpacing: -0.4, lineHeight: 1.15,
+            marginTop: 1, color: '#f5f5f7',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {trip.branchName}
           </div>
         </div>
+      </div>
 
-        <div className="px-4 pb-6">
-          {/* Velocidad */}
-          {speed !== null && (
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <span className="text-xs font-bold font-headline" style={{ color: '#adaaaa' }}>VELOCIDAD</span>
-              <span className="font-headline font-black text-white text-sm">{speed} km/h</span>
-            </div>
-          )}
+      {/* Metrics */}
+      <div style={{ padding: '16px 20px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        <Metric
+          label="Velocidad"
+          value={speed ?? 0}
+          unit="km/h"
+          icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b6b75" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 14l4-4M4 14a8 8 0 0116 0"/></svg>}
+        />
+        <Metric
+          label="Duración"
+          value={Math.floor(elapsed / 60)}
+          unit="min"
+          icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b6b75" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>}
+        />
+        <Metric
+          label="Estado"
+          value={occupancy ? (occupancy === 'empty' ? 'Vacío' : occupancy === 'moderate' ? 'OK' : 'Lleno') : '—'}
+          unit=""
+          icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b6b75" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3"/><circle cx="5" cy="10" r="2.5"/><circle cx="19" cy="10" r="2.5"/><path d="M7 20c0-2.5 2-4.5 5-4.5s5 2 5 4.5"/></svg>}
+        />
+      </div>
 
-          {/* Ocupación */}
-          <div className="mb-4">
-            <p className="text-xs uppercase font-headline font-bold tracking-widest mb-2 px-1"
-              style={{ color: '#adaaaa' }}>Estado de ocupación</p>
-            <div className="grid grid-cols-3 gap-2 p-2 rounded-[14px]"
-              style={{ background: '#141414' }}>
-              {OCCUPANCY_OPTIONS.map((opt) => {
-                const selected = occupancy === opt.value
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => handleOccupancy(opt.value)}
-                    disabled={savingOcc}
-                    className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition disabled:opacity-50"
-                    style={{
-                      background: selected ? '#ff5e07' : 'transparent',
-                      color:      selected ? '#000000' : '#adaaaa',
-                    }}
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={selected ? 2.5 : 1.5}>
-                      {opt.value === 'empty'    && <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />}
-                      {opt.value === 'moderate' && <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />}
-                      {opt.value === 'full'     && <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zM5 20v-2a4 4 0 014-4h.5" />}
-                    </svg>
-                    <span className="font-headline text-xs font-bold uppercase">{opt.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Indicador pantalla activa */}
-          {keepAwakeActive ? (
-            <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
-              style={{ background: 'rgba(34,197,94,0.08)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.15)' }}>
-              <span>🔒</span>
-              <span>
-                {keepAwakeMethod === 'wakeLock'
-                  ? 'Pantalla activa — podés usar otras apps y el rastreo continúa'
-                  : 'Pantalla activa — el GPS sigue funcionando mientras no la apagues'}
-              </span>
-            </div>
-          ) : isIOS ? (
-            <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
-              style={{ background: 'rgba(255,183,77,0.08)', color: '#ffb74d', border: '1px solid rgba(255,183,77,0.15)' }}>
-              <span>⚠️</span>
-              <span>Dejá la pantalla encendida — en iOS el GPS se pausa si se apaga</span>
-            </div>
-          ) : (
-            <div className="rounded-xl px-3 py-2 mb-3 text-xs flex items-center gap-2"
-              style={{ background: 'rgba(255,183,77,0.08)', color: '#ffb74d', border: '1px solid rgba(255,183,77,0.15)' }}>
-              <span>⚠️</span>
-              <span>Manteniendo pantalla activa...</span>
-            </div>
-          )}
-
-          {geoError && (
-            <div className="rounded-xl px-3 py-2 mb-3 text-xs"
-              style={{ background: 'rgba(255,113,108,0.08)', color: '#ff716c', border: '1px solid rgba(255,113,108,0.15)' }}>
-              {geoError}
-            </div>
-          )}
-
-          <button
-            onClick={handleStop}
-            disabled={stopping}
-            className="w-full py-4 rounded-full text-sm font-headline font-bold uppercase tracking-tight transition disabled:opacity-50"
-            style={{ background: '#ff716c', color: '#ffffff' }}
-          >
-            {stopping ? 'Terminando...' : 'Dejar de compartir'}
-          </button>
+      {/* Ocupación selector */}
+      <div style={{ padding: '16px 20px 0' }}>
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: '#a1a1aa',
+          letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6,
+        }}>
+          ¿Cómo viene el bondi?
         </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+          {OCCUPANCY_OPTIONS.map((opt) => {
+            const active = occupancy === opt.value
+            return (
+              <button
+                key={opt.value}
+                onClick={() => handleOccupancy(opt.value)}
+                disabled={savingOcc}
+                style={{
+                  padding: '10px 6px', borderRadius: 12,
+                  background: active ? 'oklch(72% 0.15 145 / 0.18)' : '#141418',
+                  border: `0.5px solid ${active ? 'oklch(72% 0.15 145)' : '#1f1f26'}`,
+                  color: '#fff', cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  opacity: savingOcc ? 0.5 : 1,
+                }}
+              >
+                <OccupancyDots n={opt.n} color={opt.color} />
+                <div className="font-headline" style={{
+                  fontSize: 12, fontWeight: 600, letterSpacing: -0.1,
+                  color: active ? 'oklch(85% 0.13 145)' : '#f5f5f7',
+                }}>
+                  {opt.label}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Indicador pantalla activa */}
+      <div style={{ padding: '14px 20px 0' }}>
+        {keepAwakeActive ? (
+          <div style={{
+            padding: '8px 12px', borderRadius: 12,
+            background: 'oklch(72% 0.15 145 / 0.10)',
+            color: 'oklch(82% 0.12 145)',
+            border: '0.5px solid oklch(72% 0.15 145 / 0.25)',
+            fontSize: 12, display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+            <span>
+              {keepAwakeMethod === 'wakeLock'
+                ? 'Pantalla activa — podés usar otras apps'
+                : 'Pantalla activa — el GPS sigue funcionando'}
+            </span>
+          </div>
+        ) : (
+          <div style={{
+            padding: '8px 12px', borderRadius: 12,
+            background: 'oklch(45% 0.15 70 / 0.10)',
+            color: 'oklch(80% 0.13 70)',
+            border: '0.5px solid oklch(45% 0.15 70 / 0.25)',
+            fontSize: 12, display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 9v4M12 17h0M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+            <span>{isIOS ? 'Dejá la pantalla encendida — iOS pausa el GPS si se apaga' : 'Manteniendo pantalla activa...'}</span>
+          </div>
+        )}
+
+        {geoError && (
+          <div style={{
+            marginTop: 8,
+            padding: '8px 12px', borderRadius: 12,
+            background: 'oklch(35% 0.15 25 / 0.15)',
+            color: 'oklch(72% 0.18 25)',
+            border: '0.5px solid oklch(50% 0.18 25 / 0.25)',
+            fontSize: 12,
+          }}>
+            {geoError}
+          </div>
+        )}
+      </div>
+
+      {/* Stop button */}
+      <div style={{ padding: '16px 20px 0' }}>
+        <button
+          onClick={handleStop}
+          disabled={stopping}
+          className="font-headline"
+          style={{
+            width: '100%', height: 52, borderRadius: 14,
+            background: 'oklch(35% 0.15 25)', color: '#fff',
+            border: '0.5px solid oklch(50% 0.18 25 / 0.4)',
+            cursor: stopping ? 'wait' : 'pointer',
+            fontSize: 15, fontWeight: 700, letterSpacing: -0.2,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            opacity: stopping ? 0.6 : 1,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 21V4M5 4h12l-2 4 2 4H5"/>
+          </svg>
+          {stopping ? 'Terminando...' : 'Terminar viaje'}
+        </button>
       </div>
     </div>
   )

@@ -6,12 +6,11 @@ import { useRouter } from 'next/navigation'
 
 interface Props {
   filterLine:    string | null
-  onFilterClear: () => void
+  onFilterChange: (value: string | null) => void
   tripActive:    boolean
-  onStartTrip:   () => void
 }
 
-export function Header({ filterLine, onFilterClear, tripActive, onStartTrip }: Props) {
+export function Header({ filterLine, onFilterChange }: Props) {
   const { user, signOut }       = useAuth()
   const router                  = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -21,83 +20,114 @@ export function Header({ filterLine, onFilterClear, tripActive, onStartTrip }: P
     router.push('/login')
   }
 
-  const initial = user?.displayName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? '?'
+  const initials = (user?.displayName?.slice(0, 2) ?? user?.email?.slice(0, 2) ?? 'JM').toUpperCase()
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 pointer-events-none"
-      style={{ background: 'linear-gradient(to bottom, rgba(14,14,14,0.92) 0%, transparent 100%)' }}>
-
-      {/* Logo */}
-      <div className="flex items-center gap-2 pointer-events-auto">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: '#ff5e07' }}>
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
-              <path d="M8 6h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="black" strokeWidth="2"/>
-              <circle cx="9" cy="17" r="1.5" fill="black"/>
-              <circle cx="15" cy="17" r="1.5" fill="black"/>
-              <path d="M6 10h12" stroke="black" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <span className="font-headline text-base font-black tracking-tighter uppercase italic text-white">
-            COLECTIVO VIVO
-          </span>
+    <header
+      className="absolute top-0 left-0 right-0 z-20 pointer-events-none"
+      style={{ padding: '60px 14px 0' }}
+    >
+      <div className="flex items-center gap-2.5 pointer-events-auto">
+        {/* Search pill */}
+        <div
+          style={{
+            flex: 1, height: 48, borderRadius: 999,
+            background: 'rgba(20,20,24,0.85)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '0.5px solid #2a2a32',
+            display: 'flex', alignItems: 'center', padding: '0 16px', gap: 10,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="M21 21l-5-5"/>
+          </svg>
+          <input
+            type="search"
+            inputMode="numeric"
+            placeholder="Buscar línea o ramal"
+            value={filterLine ?? ''}
+            onChange={(e) => onFilterChange(e.target.value || null)}
+            style={{
+              flex: 1, background: 'transparent', border: 0, outline: 'none',
+              color: '#f5f5f7', fontSize: 15, letterSpacing: -0.2,
+              fontFamily: 'var(--font-body), Inter, sans-serif',
+            }}
+          />
+          {filterLine && (
+            <button
+              onClick={() => onFilterChange(null)}
+              style={{
+                background: 'transparent', border: 0, color: '#6b6b75', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', padding: 0,
+              }}
+              aria-label="Limpiar búsqueda"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M6 6l12 12M18 6l-12 12"/>
+              </svg>
+            </button>
+          )}
         </div>
 
-        {filterLine && (
-          <button
-            onClick={onFilterClear}
-            className="flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition"
-            style={{ background: 'rgba(255,94,7,0.15)', color: '#ff9064', border: '1px solid rgba(255,94,7,0.3)' }}
-          >
-            Línea {filterLine}
-            <span style={{ color: '#ff5e07' }}>✕</span>
-          </button>
-        )}
-      </div>
-
-      {/* Acciones */}
-      <div className="flex items-center gap-2 pointer-events-auto">
-        {!tripActive && (
-          <button
-            onClick={onStartTrip}
-            className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold text-black transition"
-            style={{ background: '#ff5e07', boxShadow: '0 4px 14px rgba(255,94,7,0.4)' }}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Estoy en un colectivo
-          </button>
-        )}
-
-        {/* Avatar */}
+        {/* Avatar button */}
         <div className="relative">
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition"
-            style={{ background: '#1a1919', border: '1px solid #262626', color: '#ff9064' }}
+            className="font-headline"
+            style={{
+              width: 48, height: 48, borderRadius: 999,
+              background: 'rgba(20,20,24,0.85)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '0.5px solid #2a2a32',
+              color: '#f5f5f7',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              fontSize: 15, fontWeight: 700, letterSpacing: -0.3,
+            }}
+            aria-label="Cuenta"
           >
-            {initial}
+            {initials}
           </button>
 
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-11 z-20 rounded-2xl shadow-2xl w-48 py-2 overflow-hidden"
-                style={{ background: '#141414', border: '1px solid #262626' }}>
-                <div className="px-4 py-2.5" style={{ borderBottom: '1px solid #1a1919' }}>
-                  <p className="text-xs font-semibold text-white truncate">{user?.displayName ?? 'Usuario'}</p>
-                  <p className="text-xs truncate mt-0.5" style={{ color: '#adaaaa' }}>{user?.email}</p>
+              <div
+                className="absolute right-0 top-12 z-20 overflow-hidden"
+                style={{
+                  width: 220,
+                  background: 'rgba(10,10,12,0.95)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '0.5px solid #2a2a32',
+                  borderRadius: 18,
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                  animation: 'cv-fade-up 0.2s',
+                }}
+              >
+                <div style={{ padding: '12px 14px', borderBottom: '0.5px solid #2a2a32' }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#f5f5f7', letterSpacing: -0.2, margin: 0 }}>
+                    {user?.displayName ?? 'Usuario'}
+                  </p>
+                  <p style={{ fontSize: 11, color: '#a1a1aa', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.email}
+                  </p>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="w-full text-left px-4 py-2.5 text-sm transition"
-                  style={{ color: '#ff716c' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,113,108,0.08)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  style={{
+                    width: '100%', textAlign: 'left',
+                    padding: '10px 14px',
+                    background: 'transparent', border: 0,
+                    color: 'oklch(72% 0.18 25)',
+                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                    fontFamily: 'var(--font-body), Inter, sans-serif',
+                  }}
                 >
                   Cerrar sesión
                 </button>

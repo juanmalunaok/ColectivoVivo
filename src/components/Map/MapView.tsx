@@ -20,26 +20,27 @@ const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 const MAP_ID = process.env.NEXT_PUBLIC_MAPS_ID ?? ''
 
 const DARK_STYLE = [
-  { elementType: 'geometry', stylers: [{ color: '#0d0d1a' }] },
+  { elementType: 'geometry', stylers: [{ color: '#1a1c21' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#5a6480' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#0d0d1a' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#14142a' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#8892b0' }] },
-  { featureType: 'administrative.neighborhood', elementType: 'labels.text.fill', stylers: [{ color: '#4a5568' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#6b6b75' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1c21' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#16181c' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#a1a1aa' }] },
+  { featureType: 'administrative.neighborhood', elementType: 'labels.text.fill', stylers: [{ color: '#6b6b75' }] },
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'road', elementType: 'geometry.fill', stylers: [{ color: '#1a1a30' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0d0d1a' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#3d4460' }] },
-  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#20203a' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#252545' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1a1a30' }] },
-  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#5a6480' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#16221a' }] },
+  { featureType: 'road', elementType: 'geometry.fill', stylers: [{ color: '#2b2f38' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#1a1c21' }] },
+  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#6b6b75' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#2b2f38' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3a3f4b' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#2b2f38' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#a1a1aa' }] },
   { featureType: 'road.local', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#14142a' }] },
-  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#ff5e07' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#04040e' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#1e2033' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#16181c' }] },
+  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#6b6b75' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0c1116' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3a3f4b' }] },
 ]
 
 function SelfCentering({ lat, lng }: { lat: number; lng: number }) {
@@ -89,14 +90,16 @@ function CenterButton({ cachedPos }: { cachedPos: { lat: number; lng: number } |
       aria-label="Centrar en mi ubicación"
       style={{
         position: 'absolute',
-        bottom: '180px',
-        right: '16px',
+        bottom: '200px',
+        right: '14px',
         width: '44px',
         height: '44px',
-        borderRadius: '50%',
-        background: '#141414',
-        border: '1px solid #262626',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
+        borderRadius: '12px',
+        background: 'rgba(20,20,24,0.9)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '0.5px solid #2a2a32',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -105,10 +108,10 @@ function CenterButton({ cachedPos }: { cachedPos: { lat: number; lng: number } |
         WebkitTapHighlightColor: 'transparent',
       }}
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5e07" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3"/>
+        <circle cx="12" cy="12" r="8"/>
         <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-        <circle cx="12" cy="12" r="8" strokeOpacity="0.3"/>
       </svg>
     </button>
   )
@@ -133,33 +136,24 @@ function UserPositionMarker({ pos }: { pos: { lat: number; lng: number } | null 
 
   return (
     <AdvancedMarker position={pos} zIndex={20}>
-      <div style={{ position: 'relative', width: 36, height: 36 }}>
+      <div style={{ position: 'relative', width: 18, height: 18 }}>
         {/* Pulso exterior */}
         <div style={{
           position: 'absolute',
-          inset: -8,
+          inset: -16,
           borderRadius: '50%',
-          background: 'rgba(255,94,7,0.15)',
-          animation: 'ping 1.8s cubic-bezier(0,0,0.2,1) infinite',
+          background: 'oklch(65% 0.22 250 / 0.2)',
+          animation: 'cv-ping 2.2s cubic-bezier(0,0,0.2,1) infinite',
         }} />
-        {/* Contenedor circular */}
+        {/* Punto azul con anillo blanco — estilo Apple Maps */}
         <div style={{
-          position: 'absolute',
-          inset: 0,
+          width: 18,
+          height: 18,
           borderRadius: '50%',
-          background: '#141414',
-          border: '2.5px solid #ff5e07',
-          boxShadow: '0 2px 10px rgba(255,94,7,0.45)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          {/* Ícono persona */}
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff5e07">
-            <circle cx="12" cy="6" r="4" />
-            <path d="M12 13c-4.5 0-7 2.7-7 5v1h14v-1c0-2.3-2.5-5-7-5z" />
-          </svg>
-        </div>
+          background: 'oklch(65% 0.22 250)',
+          border: '3px solid #fff',
+          boxShadow: '0 0 0 0.5px rgba(0,0,0,0.5), 0 4px 14px rgba(0,0,0,0.5)',
+        }} />
       </div>
     </AdvancedMarker>
   )
@@ -171,8 +165,8 @@ function RoutePolyline({ lineNumber }: { lineNumber: string }) {
   return (
     <Polyline
       path={coords}
-      strokeColor="#ff5e07"
-      strokeOpacity={0.7}
+      strokeColor="#4ed26a"
+      strokeOpacity={0.75}
       strokeWeight={5}
     />
   )

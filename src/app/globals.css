@@ -2,80 +2,137 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens ColectivoVivo ────────────────────────────────── */
+:root {
+  --cv-bg:        #000000;
+  --cv-bg-1:      #0a0a0c;
+  --cv-bg-2:      #141418;
+  --cv-bg-3:      #1c1c22;
+  --cv-line:      #2a2a32;
+  --cv-line-soft: #1f1f26;
+  --cv-text:      #f5f5f7;
+  --cv-text-2:    #a1a1aa;
+  --cv-text-3:    #6b6b75;
+
+  /* accent: verde vivo (live) */
+  --cv-live:      oklch(72% 0.15 145);
+  --cv-live-soft: oklch(72% 0.15 145 / 0.12);
+  --cv-live-ring: oklch(72% 0.15 145 / 0.25);
+
+  /* ocupación */
+  --cv-occ-empty: oklch(72% 0.15 145);
+  --cv-occ-med:   oklch(78% 0.13 85);
+  --cv-occ-full:  oklch(68% 0.17 25);
+
+  /* mapa apple-style dark */
+  --map-land:    #1a1c21;
+  --map-land-2:  #16181c;
+  --map-water:   #0c1116;
+  --map-road:    #2b2f38;
+  --map-road-lg: #3a3f4b;
+  --map-label:   #6b6b75;
+  --map-park:    #16221a;
+}
+
 html,
 body {
   height: 100%;
   overflow: hidden;
-  background-color: #0e0e0e;
-  color: #ffffff;
-  font-family: var(--font-body), 'Manrope', sans-serif;
+  background-color: var(--cv-bg-1);
+  color: var(--cv-text);
+  font-family: var(--font-body), 'Inter', -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
 
 .font-headline {
-  font-family: var(--font-headline), 'Space Grotesk', sans-serif;
+  font-family: var(--font-headline), 'Inter Tight', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
 }
+
+.cv-tight   { font-family: var(--font-headline), 'Inter Tight', 'Inter', sans-serif; letter-spacing: -0.02em; }
+.cv-mono    { font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace; }
+.cv-tabular { font-variant-numeric: tabular-nums; }
 
 #__next,
 main {
   height: 100%;
 }
 
-/* ── Marcadores de colectivo ───────────────────────────────────── */
-.bus-marker {
-  display: flex;
+/* ── Scroll oculto dentro de sheets ─────────────────────────────── */
+.cv-scroll::-webkit-scrollbar { width: 0; height: 0; }
+.cv-scroll { scrollbar-width: none; }
+
+/* ── Bus markers: pill blanco con número de línea ───────────────── */
+.cv-marker {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  background-color: #1a1919;
-  color: #ffffff;
+  padding: 4px 9px;
+  min-width: 36px;
+  height: 26px;
+  border-radius: 999px;
+  font-family: var(--font-headline), 'Inter Tight', sans-serif;
   font-weight: 800;
-  font-size: 12px;
-  font-family: var(--font-headline), 'Space Grotesk', sans-serif;
-  letter-spacing: -0.03em;
-  border: 2px solid #262626;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 4px 14px rgba(0,0,0,0.5);
+  border: 1.5px solid rgba(255,255,255,0.9);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
   white-space: nowrap;
   user-select: none;
+  transition: transform 0.15s ease;
 }
 
-.bus-marker:hover {
-  transform: scale(1.12);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.7);
+.cv-marker:hover { transform: scale(1.08); }
+
+.cv-marker.own {
+  background: var(--cv-live);
+  color: #001b0a;
+  border-color: var(--cv-live);
+  box-shadow: 0 0 0 4px var(--cv-live-ring), 0 4px 14px rgba(0,0,0,0.5);
 }
 
-.bus-marker.own {
-  background-color: #ff5e07;
-  color: #000000;
-  border-color: #ff5e07;
-  box-shadow: 0 4px 16px rgba(255,94,7,0.5);
+.cv-marker.followed {
+  background: var(--cv-live);
+  color: #001b0a;
+  border-color: var(--cv-live);
 }
 
-.bus-marker.reported {
-  background-color: #262626;
-  color: #555;
+.cv-marker.reported {
+  background: var(--cv-bg-3);
+  color: var(--cv-text-3);
+  border-color: var(--cv-line);
   box-shadow: none;
 }
 
-.bus-marker.followed {
-  background-color: #ff5e07;
-  color: #000000;
-  border-color: #ff5e07;
-  box-shadow: 0 0 0 3px rgba(255,94,7,0.25);
-  animation: pulse-follow 1.8s ease-in-out infinite;
+/* ── Punto live pulsante ────────────────────────────────────────── */
+.cv-dot-live {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cv-live);
+  display: inline-block;
+}
+.cv-dot-live::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--cv-live);
+  animation: cv-ping 1.8s cubic-bezier(0,0,0.2,1) infinite;
 }
 
-@keyframes pulse-follow {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(255,94,7,0.25), 0 4px 16px rgba(255,94,7,0.5); }
-  50%       { box-shadow: 0 0 0 8px rgba(255,94,7,0.1),  0 4px 24px rgba(255,94,7,0.7); }
-}
-
-@keyframes ping {
-  75%, 100% { transform: scale(2.2); opacity: 0; }
-}
+/* ── Animaciones ────────────────────────────────────────────────── */
+@keyframes ping       { 75%, 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes cv-ping    { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+@keyframes cv-pulse   { 0%,100% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.08); opacity: 0.8 } }
+@keyframes cv-fade-up { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes cv-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes cv-sheet-in { from { transform: translateY(100%) } to { transform: translateY(0) } }
 
 /* ── Ocultar UI de Google Maps ─────────────────────────────────── */
 .gm-style-cc,
@@ -87,16 +144,8 @@ main {
 /* ── Scrollbar dark ────────────────────────────────────────────── */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,94,7,0.25) transparent;
+  scrollbar-color: var(--cv-line) transparent;
 }
-
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255,94,7,0.25);
-  border-radius: 4px;
-}
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--cv-line); border-radius: 4px; }

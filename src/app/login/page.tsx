@@ -46,13 +46,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5" style={{ background: '#0e0e0e' }}>
+    <div className="min-h-screen flex items-center justify-center px-5" style={{ background: '#0a0a0c' }}>
       <div className="w-full max-w-[360px]">
 
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl mb-4"
-            style={{ background: '#ff5e07' }}>
+            style={{ background: 'oklch(72% 0.15 145)' }}>
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
               <path d="M8 6h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="black" strokeWidth="1.5"/>
               <circle cx="9" cy="17" r="1.5" fill="black"/>
@@ -61,14 +61,14 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="font-headline font-black text-2xl text-white uppercase tracking-tight italic">COLECTIVO VIVO</h1>
-          <p className="text-sm mt-1" style={{ color: '#adaaaa' }}>Colectivos de AMBA en tiempo real</p>
+          <p className="text-sm mt-1" style={{ color: '#a1a1aa' }}>Colectivos de AMBA en tiempo real</p>
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl p-6" style={{ background: '#141414', border: '1px solid #262626' }}>
+        <div className="rounded-2xl p-6" style={{ background: '#141418', border: '0.5px solid #2a2a32' }}>
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#adaaaa' }}>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>
                 Email
               </label>
               <input
@@ -79,14 +79,14 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
-                style={{ background: '#1a1919', border: '1px solid #262626' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#ff5e07'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#262626'}
+                style={{ background: '#1c1c22', border: '0.5px solid #2a2a32' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = 'oklch(72% 0.15 145)'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a32'}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#adaaaa' }}>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>
                 Contraseña
               </label>
               <input
@@ -97,9 +97,9 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
-                style={{ background: '#1a1919', border: '1px solid #262626' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#ff5e07'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#262626'}
+                style={{ background: '#1c1c22', border: '0.5px solid #2a2a32' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = 'oklch(72% 0.15 145)'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a32'}
               />
             </div>
 
@@ -112,23 +112,23 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-4 rounded-full font-headline font-bold text-black text-sm uppercase tracking-tight transition disabled:opacity-50 active:scale-95"
-              style={{ background: '#ff5e07', boxShadow: '0 4px 14px rgba(255,94,7,0.4)' }}
+              className="w-full py-4 rounded-full font-headline font-bold text-sm tracking-tight transition disabled:opacity-50 active:scale-95"
+              style={{ background: 'oklch(72% 0.15 145)', color: '#001b0a', boxShadow: '0 4px 14px oklch(72% 0.15 145 / 0.4)' }}
             >
               {submitting ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
 
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ background: '#262626' }} />
-            <span className="text-xs" style={{ color: '#adaaaa' }}>o</span>
-            <div className="flex-1 h-px" style={{ background: '#262626' }} />
+            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
+            <span className="text-xs" style={{ color: '#a1a1aa' }}>o</span>
+            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
           </div>
 
           <button
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-full text-sm font-medium transition active:scale-95"
-            style={{ background: '#1a1919', border: '1px solid #262626', color: '#ffffff' }}
+            style={{ background: '#1c1c22', border: '0.5px solid #2a2a32', color: '#f5f5f7' }}
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -140,9 +140,9 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p className="text-center text-sm mt-6" style={{ color: '#adaaaa' }}>
+        <p className="text-center text-sm mt-6" style={{ color: '#a1a1aa' }}>
           ¿No tenés cuenta?{' '}
-          <Link href="/register" className="font-bold" style={{ color: '#ff9064' }}>
+          <Link href="/register" className="font-bold" style={{ color: 'oklch(85% 0.13 145)' }}>
             Registrate
           </Link>
         </p>
