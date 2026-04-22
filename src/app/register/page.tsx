@@ -2,33 +2,90 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { CVIcon } from '@/components/UI/CVIcon'
+
+function CVField({
+  label, value, onChange, type = 'text', placeholder, trailing, autoComplete, minLength,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  placeholder?: string
+  trailing?: ReactNode
+  autoComplete?: string
+  minLength?: number
+}) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div style={{
+      position: 'relative', background: '#0a0a0c',
+      border: `0.5px solid ${focused ? 'oklch(72% 0.15 145)' : '#2a2a32'}`,
+      borderRadius: 14, padding: '10px 14px',
+      transition: 'border-color 0.15s',
+    }}>
+      <div style={{
+        fontSize: 11,
+        color: focused ? 'oklch(82% 0.12 145)' : '#6b6b75',
+        fontWeight: 500, letterSpacing: 0.2, textTransform: 'uppercase',
+        transition: 'color 0.15s',
+      }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          type={type}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          minLength={minLength}
+          required
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            flex: 1, background: 'transparent', border: 0, outline: 'none',
+            color: '#f5f5f7', fontSize: 16,
+            fontFamily: 'var(--font-body), Inter, sans-serif',
+            padding: '4px 0 2px', letterSpacing: -0.2,
+          }}
+        />
+        {trailing}
+      </div>
+    </div>
+  )
+}
 
 export default function RegisterPage() {
-  const { signUpWithEmail, signInWithGoogle } = useAuth()
+  const { signUpWithEmail, signInWithGoogle } = useAuth() as {
+    signUpWithEmail?: (email: string, password: string, name: string) => Promise<void>
+    signInWithGoogle: () => Promise<void>
+  }
   const router = useRouter()
 
-  const [name, setName]         = useState('')
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [terms, setTerms]       = useState(false)
-  const [error, setError]       = useState<string | null>(null)
+  const [name, setName]           = useState('')
+  const [email, setEmail]         = useState('')
+  const [password, setPassword]   = useState('')
+  const [terms, setTerms]         = useState(true)
+  const [error, setError]         = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  async function handleRegister(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!terms) { setError('Debés aceptar los Términos y Condiciones.'); return }
     setError(null)
+    if (!terms) { setError('Tenés que aceptar los Términos y la Política de Privacidad.'); return }
     setSubmitting(true)
     try {
-      await signUpWithEmail(email, password, name)
+      if (signUpWithEmail) {
+        await signUpWithEmail(email, password, name)
+      }
       router.push('/')
     } catch (err: unknown) {
       const code = (err as { code?: string })?.code
-      if (code === 'auth/email-already-in-use') setError('Ya existe una cuenta con ese email.')
+      if (code === 'auth/email-already-in-use') setError('Este email ya está registrado.')
+      else if (code === 'auth/invalid-email') setError('Email inválido.')
       else if (code === 'auth/weak-password') setError('La contraseña debe tener al menos 6 caracteres.')
       else setError('Error al crear la cuenta. Intentá de nuevo.')
     } finally {
@@ -36,135 +93,111 @@ export default function RegisterPage() {
     }
   }
 
-  async function handleGoogle() {
-    if (!terms) { setError('Debés aceptar los Términos y Condiciones.'); return }
-    try {
-      await signInWithGoogle()
-      router.push('/')
-    } catch {
-      setError('No se pudo registrar con Google.')
-    }
-  }
-
-  const inputBase = {
-    background: '#1c1c22',
-    border: '0.5px solid #2a2a32',
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center px-5 py-8" style={{ background: '#0a0a0c' }}>
-      <div className="w-full max-w-[360px]">
+    <div style={{ position: 'fixed', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+      {/* Header */}
+      <div style={{ padding: '68px 20px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Link
+          href="/login"
+          style={{
+            width: 40, height: 40, borderRadius: 999,
+            border: '0.5px solid #2a2a32',
+            background: 'transparent', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            textDecoration: 'none',
+          }}
+          aria-label="Volver"
+        >
+          <CVIcon name="chevL" size={20} />
+        </Link>
+      </div>
 
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-3"
-            style={{ background: 'oklch(72% 0.15 145)' }}>
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path d="M8 6h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="black" strokeWidth="1.5"/>
-              <circle cx="9" cy="17" r="1.5" fill="black"/>
-              <circle cx="15" cy="17" r="1.5" fill="black"/>
-              <path d="M6 10h12" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+      {/* Title */}
+      <div style={{ padding: '28px 20px 0' }}>
+        <h1 className="font-headline" style={{
+          fontSize: 32, fontWeight: 700, margin: 0,
+          letterSpacing: -1.2, lineHeight: 1.05, color: '#fff',
+        }}>
+          Creá tu cuenta.
+        </h1>
+        <p style={{ marginTop: 8, fontSize: 15, color: '#a1a1aa', letterSpacing: -0.2 }}>
+          Solo necesitás un email. Tu ubicación<br />nunca se asocia con tu nombre.
+        </p>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} style={{ padding: '24px 20px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <CVField label="Nombre" value={name} onChange={setName} placeholder="Cómo te llamás" autoComplete="name" />
+        <CVField label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" autoComplete="email" />
+        <CVField label="Contraseña" value={password} onChange={setPassword} type="password" placeholder="Mínimo 8 caracteres" autoComplete="new-password" minLength={8} />
+
+        {/* Terms box */}
+        <button
+          type="button"
+          onClick={() => setTerms((v) => !v)}
+          style={{
+            marginTop: 10, padding: '12px 14px', borderRadius: 14,
+            background: '#0a0a0c', border: '0.5px solid #2a2a32',
+            display: 'flex', gap: 10, alignItems: 'flex-start',
+            cursor: 'pointer', textAlign: 'left',
+          }}
+        >
+          <div style={{
+            width: 18, height: 18, borderRadius: 5, flexShrink: 0,
+            background: terms ? 'oklch(72% 0.15 145)' : 'transparent',
+            border: terms ? 'none' : '1.5px solid #2a2a32',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {terms && <CVIcon name="check" size={12} color="#001b0a" />}
           </div>
-          <h1 className="font-headline font-black text-2xl text-white uppercase tracking-tight italic">Crear cuenta</h1>
-          <p className="text-sm mt-1" style={{ color: '#a1a1aa' }}>Unite a la comunidad</p>
-        </div>
+          <span style={{ fontSize: 13, color: '#a1a1aa', lineHeight: 1.45 }}>
+            Acepto los <b style={{ color: '#f5f5f7' }}>Términos</b> y la{' '}
+            <b style={{ color: '#f5f5f7' }}>Política de Privacidad</b>. Entiendo que mi
+            ubicación solo se comparte cuando inicio un viaje.
+          </span>
+        </button>
 
-        <div className="rounded-2xl p-6" style={{ background: '#141418', border: '0.5px solid #2a2a32' }}>
-          <form onSubmit={handleRegister} className="space-y-3.5">
-            {[
-              { label: 'Nombre', id: 'name', type: 'text', value: name, set: setName, placeholder: 'Tu nombre', auto: 'name' },
-              { label: 'Email', id: 'email', type: 'email', value: email, set: setEmail, placeholder: 'tu@email.com', auto: 'email' },
-              { label: 'Contraseña', id: 'password', type: 'password', value: password, set: setPassword, placeholder: 'Mínimo 6 caracteres', auto: 'new-password' },
-            ].map(({ label, id, type, value, set, placeholder, auto }) => (
-              <div key={id}>
-                <label htmlFor={id} className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>
-                  {label}
-                </label>
-                <input
-                  id={id}
-                  type={type}
-                  required
-                  autoComplete={auto}
-                  value={value}
-                  onChange={(e) => set(e.target.value)}
-                  placeholder={placeholder}
-                  minLength={type === 'password' ? 6 : undefined}
-                  className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
-                  style={inputBase}
-                  onFocus={(e) => e.currentTarget.style.borderColor = 'oklch(72% 0.15 145)'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a32'}
-                />
-              </div>
-            ))}
-
-            <label className="flex items-start gap-2.5 cursor-pointer pt-1">
-              <div className="relative flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  checked={terms}
-                  onChange={(e) => setTerms(e.target.checked)}
-                  className="sr-only"
-                />
-                <div
-                  className="w-4 h-4 rounded flex items-center justify-center transition"
-                  style={{
-                    background: terms ? 'oklch(72% 0.15 145)' : '#1c1c22',
-                    border: terms ? '1px solid oklch(72% 0.15 145)' : '0.5px solid #2a2a32',
-                  }}
-                >
-                  {terms && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </div>
-              </div>
-              <span className="text-xs leading-relaxed" style={{ color: '#a1a1aa' }}>
-                Acepto los{' '}
-                <Link href="/terms" style={{ color: 'oklch(85% 0.13 145)' }}>Términos</Link>{' '}
-                y la{' '}
-                <Link href="/privacy" style={{ color: 'oklch(85% 0.13 145)' }}>Política de Privacidad</Link>
-                , incluyendo compartir ubicación GPS de forma <strong className="text-white/60">anónima</strong>.
-              </span>
-            </label>
-
-            {error && (
-              <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-4 rounded-full font-headline font-bold text-black text-sm uppercase tracking-tight transition disabled:opacity-50 active:scale-95"
-              style={{ background: 'oklch(72% 0.15 145)', color: '#001b0a', boxShadow: '0 4px 14px oklch(72% 0.15 145 / 0.4)' }}
-            >
-              {submitting ? 'Creando cuenta...' : 'Crear cuenta'}
-            </button>
-          </form>
-
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
-            <span className="text-xs" style={{ color: '#a1a1aa' }}>o</span>
-            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
+        {error && (
+          <div style={{
+            padding: '10px 14px', borderRadius: 12,
+            background: 'oklch(35% 0.15 25 / 0.15)',
+            color: 'oklch(72% 0.18 25)',
+            border: '0.5px solid oklch(50% 0.18 25 / 0.25)',
+            fontSize: 13,
+          }}>
+            {error}
           </div>
+        )}
 
-          <button
-            onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-full text-sm font-medium transition active:scale-95"
-            style={{ background: '#1c1c22', border: '0.5px solid #2a2a32', color: '#f5f5f7' }}
-          >
-            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Registrarse con Google
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="font-headline"
+          style={{
+            marginTop: 14, height: 54, borderRadius: 16, border: 0,
+            background: submitting ? '#2a2a32' : '#fff',
+            color: submitting ? '#a1a1aa' : '#000',
+            fontSize: 17, fontWeight: 700, letterSpacing: -0.3,
+            cursor: submitting ? 'wait' : 'pointer',
+          }}
+        >
+          {submitting ? 'Creando cuenta…' : 'Crear cuenta'}
+        </button>
+      </form>
 
-        <p className="text-center text-sm mt-5" style={{ color: '#a1a1aa' }}>
+      <div style={{ flex: 1, minHeight: 40 }} />
+
+      <div style={{ padding: '0 20px 40px', textAlign: 'center' }}>
+        <p style={{ fontSize: 14, color: '#a1a1aa', letterSpacing: -0.2 }}>
           ¿Ya tenés cuenta?{' '}
-          <Link href="/login" className="font-bold" style={{ color: 'oklch(85% 0.13 145)' }}>
-            Iniciá sesión
+          <Link
+            href="/login"
+            style={{
+              color: 'oklch(82% 0.12 145)', fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Ingresar
           </Link>
         </p>
       </div>

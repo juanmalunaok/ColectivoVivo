@@ -9,7 +9,6 @@ import { Header } from '@/components/UI/Header'
 import { FilterChips } from '@/components/UI/FilterChips'
 import { IdleSheet } from '@/components/UI/IdleSheet'
 import { LineSelector } from '@/components/Trip/LineSelector'
-import { ConsentModal } from '@/components/Trip/ConsentModal'
 import { ActiveTripPanel } from '@/components/Trip/ActiveTripPanel'
 import { useAuth } from '@/context/AuthContext'
 import { useActiveTrips } from '@/hooks/useActiveTrips'
@@ -24,7 +23,7 @@ const MapView = dynamicImport(
   { ssr: false, loading: () => <div className="w-full h-full" style={{ background: '#0a0a0c' }} /> },
 )
 
-type FlowStep = 'idle' | 'selectingLine' | 'confirmingConsent' | 'active'
+type FlowStep = 'idle' | 'selectingLine' | 'active'
 type FilterMode = 'near' | 'fav' | 'all' | 'empty'
 
 export default function HomePage() {
@@ -35,7 +34,6 @@ export default function HomePage() {
   const { favorites, toggle: toggleFav, has: isFav } = useFavorites()
 
   const [flowStep, setFlowStep] = useState<FlowStep>('idle')
-  const [pending,  setPending]  = useState<{ line: BusLine; branch: Branch } | null>(null)
   const [filterLine,     setFilterLine]     = useState<string | null>(null)
   const [filterMode,     setFilterMode]     = useState<FilterMode>('all')
   const [followedTripId, setFollowedTripId] = useState<string | null>(null)
@@ -50,12 +48,7 @@ export default function HomePage() {
 
   function openLineSelector() { setFlowStep('selectingLine') }
 
-  function handleLineSelected(line: BusLine, branch: Branch) {
-    setPending({ line, branch })
-    setFlowStep('confirmingConsent')
-  }
-
-  async function handleConsentAccepted() {
+  async function handleStartTrip(line: BusLine, branch: Branch) {
     const fallback = { lat: -34.6037, lng: -58.3816 }
 
     let initialLat = lat ?? fallback.lat
@@ -74,20 +67,8 @@ export default function HomePage() {
       } catch (_) {}
     }
 
-    await startTrip(
-      pending!.line.number,
-      pending!.branch.id,
-      pending!.branch.name,
-      initialLat,
-      initialLng,
-    )
+    await startTrip(line.number, branch.id, branch.name, initialLat, initialLng)
     setFlowStep('active')
-    setPending(null)
-  }
-
-  function handleConsentCancelled() {
-    setPending(null)
-    setFlowStep('idle')
   }
 
   const handleStopTrip = useCallback(async () => {
@@ -182,21 +163,11 @@ export default function HomePage() {
           />
         )}
 
-        {/* Selector de línea */}
+        {/* Flujo de inicio de viaje (línea → ramal → consent) */}
         {flowStep === 'selectingLine' && (
           <LineSelector
-            onSelect={handleLineSelected}
+            onConfirm={handleStartTrip}
             onCancel={() => setFlowStep('idle')}
-          />
-        )}
-
-        {/* Consentimiento GPS */}
-        {flowStep === 'confirmingConsent' && pending && (
-          <ConsentModal
-            lineNumber={pending.line.number}
-            branchName={pending.branch.name}
-            onAccept={handleConsentAccepted}
-            onCancel={handleConsentCancelled}
           />
         )}
 

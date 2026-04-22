@@ -2,10 +2,78 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { CVIcon } from '@/components/UI/CVIcon'
+
+function CVField({
+  label, value, onChange, type = 'text', placeholder, trailing, autoComplete,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  placeholder?: string
+  trailing?: ReactNode
+  autoComplete?: string
+}) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div style={{
+      position: 'relative', background: '#0a0a0c',
+      border: `0.5px solid ${focused ? 'oklch(72% 0.15 145)' : '#2a2a32'}`,
+      borderRadius: 14, padding: '10px 14px',
+      transition: 'border-color 0.15s',
+    }}>
+      <div style={{
+        fontSize: 11,
+        color: focused ? 'oklch(82% 0.12 145)' : '#6b6b75',
+        fontWeight: 500, letterSpacing: 0.2, textTransform: 'uppercase',
+        transition: 'color 0.15s',
+      }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          type={type}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            flex: 1, background: 'transparent', border: 0, outline: 'none',
+            color: '#f5f5f7', fontSize: 16,
+            fontFamily: 'var(--font-body), Inter, sans-serif',
+            padding: '4px 0 2px', letterSpacing: -0.2,
+          }}
+        />
+        {trailing}
+      </div>
+    </div>
+  )
+}
+
+function CVSocial({ icon, label, onClick }: { icon: 'apple' | 'google'; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        height: 48, borderRadius: 14, border: '0.5px solid #2a2a32',
+        background: '#0a0a0c', color: '#fff',
+        fontSize: 15, fontWeight: 600, letterSpacing: -0.2,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        cursor: 'pointer',
+        fontFamily: 'var(--font-body), Inter, sans-serif',
+      }}
+    >
+      <CVIcon name={icon} size={18} />
+      {label}
+    </button>
+  )
+}
 
 export default function LoginPage() {
   const { signInWithEmail, signInWithGoogle } = useAuth()
@@ -16,7 +84,7 @@ export default function LoginPage() {
   const [error, setError]       = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  async function handleEmailLogin(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
@@ -24,8 +92,8 @@ export default function LoginPage() {
       await signInWithEmail(email, password)
       router.push('/')
     } catch (err: unknown) {
-      const msg = (err as { code?: string })?.code
-      if (msg === 'auth/user-not-found' || msg === 'auth/wrong-password' || msg === 'auth/invalid-credential') {
+      const code = (err as { code?: string })?.code
+      if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
         setError('Email o contraseña incorrectos.')
       } else {
         setError('Error al iniciar sesión. Intentá de nuevo.')
@@ -35,7 +103,7 @@ export default function LoginPage() {
     }
   }
 
-  async function handleGoogleLogin() {
+  async function handleGoogle() {
     setError(null)
     try {
       await signInWithGoogle()
@@ -46,103 +114,102 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5" style={{ background: '#0a0a0c' }}>
-      <div className="w-full max-w-[360px]">
+    <div style={{ position: 'fixed', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+      {/* Header back button */}
+      <div style={{ padding: '68px 20px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Link
+          href="/register"
+          style={{
+            width: 40, height: 40, borderRadius: 999,
+            border: '0.5px solid #2a2a32',
+            background: 'transparent', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            textDecoration: 'none',
+          }}
+          aria-label="Volver"
+        >
+          <CVIcon name="chevL" size={20} />
+        </Link>
+      </div>
 
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl mb-4"
-            style={{ background: 'oklch(72% 0.15 145)' }}>
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-              <path d="M8 6h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="black" strokeWidth="1.5"/>
-              <circle cx="9" cy="17" r="1.5" fill="black"/>
-              <circle cx="15" cy="17" r="1.5" fill="black"/>
-              <path d="M6 10h12" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+      {/* Title */}
+      <div style={{ padding: '28px 20px 0' }}>
+        <h1 className="font-headline" style={{
+          fontSize: 32, fontWeight: 700, margin: 0,
+          letterSpacing: -1.2, lineHeight: 1.05, color: '#fff',
+        }}>
+          Bienvenido<br />de nuevo.
+        </h1>
+        <p style={{ marginTop: 8, fontSize: 15, color: '#a1a1aa', letterSpacing: -0.2 }}>
+          Ingresá para empezar a compartir<br />o seguir colectivos.
+        </p>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} style={{ padding: '28px 20px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <CVField label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" autoComplete="email" />
+        <CVField
+          label="Contraseña"
+          value={password}
+          onChange={setPassword}
+          type="password"
+          placeholder="••••••••"
+          autoComplete="current-password"
+        />
+
+        {error && (
+          <div style={{
+            padding: '10px 14px', borderRadius: 12,
+            background: 'oklch(35% 0.15 25 / 0.15)',
+            color: 'oklch(72% 0.18 25)',
+            border: '0.5px solid oklch(50% 0.18 25 / 0.25)',
+            fontSize: 13,
+          }}>
+            {error}
           </div>
-          <h1 className="font-headline font-black text-2xl text-white uppercase tracking-tight italic">COLECTIVO VIVO</h1>
-          <p className="text-sm mt-1" style={{ color: '#a1a1aa' }}>Colectivos de AMBA en tiempo real</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="font-headline"
+          style={{
+            marginTop: 8, height: 54, borderRadius: 16, border: 0,
+            background: submitting ? '#2a2a32' : '#fff',
+            color: submitting ? '#a1a1aa' : '#000',
+            fontSize: 17, fontWeight: 700, letterSpacing: -0.3,
+            cursor: submitting ? 'wait' : 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          {submitting ? 'Ingresando…' : 'Ingresar'}
+        </button>
+
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0 4px' }}>
+          <div style={{ flex: 1, height: 0.5, background: '#2a2a32' }} />
+          <span style={{ fontSize: 12, color: '#6b6b75', letterSpacing: -0.1 }}>o continuar con</span>
+          <div style={{ flex: 1, height: 0.5, background: '#2a2a32' }} />
         </div>
 
-        {/* Form card */}
-        <div className="rounded-2xl p-6" style={{ background: '#141418', border: '0.5px solid #2a2a32' }}>
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
-                style={{ background: '#1c1c22', border: '0.5px solid #2a2a32' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = 'oklch(72% 0.15 145)'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a32'}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>
-                Contraseña
-              </label>
-              <input
-                type="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-full text-sm text-white outline-none transition"
-                style={{ background: '#1c1c22', border: '0.5px solid #2a2a32' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = 'oklch(72% 0.15 145)'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#2a2a32'}
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-4 rounded-full font-headline font-bold text-sm tracking-tight transition disabled:opacity-50 active:scale-95"
-              style={{ background: 'oklch(72% 0.15 145)', color: '#001b0a', boxShadow: '0 4px 14px oklch(72% 0.15 145 / 0.4)' }}
-            >
-              {submitting ? 'Ingresando...' : 'Ingresar'}
-            </button>
-          </form>
-
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
-            <span className="text-xs" style={{ color: '#a1a1aa' }}>o</span>
-            <div className="flex-1 h-px" style={{ background: '#2a2a32' }} />
-          </div>
-
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-full text-sm font-medium transition active:scale-95"
-            style={{ background: '#1c1c22', border: '0.5px solid #2a2a32', color: '#f5f5f7' }}
-          >
-            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Continuar con Google
-          </button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <CVSocial icon="apple" label="Apple" onClick={handleGoogle} />
+          <CVSocial icon="google" label="Google" onClick={handleGoogle} />
         </div>
+      </form>
 
-        <p className="text-center text-sm mt-6" style={{ color: '#a1a1aa' }}>
+      <div style={{ flex: 1, minHeight: 40 }} />
+
+      <div style={{ padding: '0 20px 40px', textAlign: 'center' }}>
+        <p style={{ fontSize: 14, color: '#a1a1aa', letterSpacing: -0.2 }}>
           ¿No tenés cuenta?{' '}
-          <Link href="/register" className="font-bold" style={{ color: 'oklch(85% 0.13 145)' }}>
+          <Link
+            href="/register"
+            style={{
+              color: 'oklch(82% 0.12 145)', fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
             Registrate
           </Link>
         </p>

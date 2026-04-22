@@ -1,197 +1,398 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
-import { searchLines } from '@/lib/busLines'
+import { useState, useMemo, useRef, useEffect, ReactNode } from 'react'
+import { searchLines, BUS_LINES } from '@/lib/busLines'
+import { CVIcon } from '@/components/UI/CVIcon'
 import type { BusLine, Branch } from '@/types'
 
 interface Props {
-  onSelect: (line: BusLine, branch: Branch) => void
-  onCancel: () => void
+  onConfirm: (line: BusLine, branch: Branch) => Promise<void> | void
+  onCancel:  () => void
 }
 
-export function LineSelector({ onSelect, onCancel }: Props) {
-  const [query,          setQuery]          = useState('')
-  const [selectedLine,   setSelectedLine]   = useState<BusLine | null>(null)
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [vpHeight, setVpHeight] = useState<number>(
-    typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 700
+function LineBadge({ number, size = 'md', style }: { number: string; size?: 'sm' | 'md' | 'lg'; style?: React.CSSProperties }) {
+  const s = size === 'sm' ? { h: 22, px: 7, fs: 12, min: 30 }
+          : size === 'lg' ? { h: 36, px: 12, fs: 17, min: 46 }
+          : { h: 28, px: 9, fs: 14, min: 36 }
+  return (
+    <span
+      className="font-headline"
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        height: s.h, padding: `0 ${s.px}px`, minWidth: s.min,
+        borderRadius: 999, background: '#fff', color: '#000',
+        fontWeight: 800, fontSize: s.fs, letterSpacing: -0.03 * s.fs,
+        ...style,
+      }}
+    >
+      {number}
+    </span>
   )
+}
 
-  useEffect(() => { inputRef.current?.focus() }, [])
-
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    const update = () => setVpHeight(vv.height)
-    vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
-    return () => {
-      vv.removeEventListener('resize', update)
-      vv.removeEventListener('scroll', update)
-    }
-  }, [])
-
-  const filtered = useMemo(() => searchLines(query), [query])
-
-  function handleConfirm() {
-    if (selectedLine && selectedBranch) onSelect(selectedLine, selectedBranch)
-  }
-
+function StepScreen({
+  title, subtitle, onBack, onCancel, stepIdx, heroLine, children,
+}: {
+  title: string
+  subtitle?: string | null
+  onBack?: () => void
+  onCancel: () => void
+  stepIdx: 0 | 1 | 2
+  heroLine?: string
+  children: ReactNode
+}) {
   return (
     <div
-      className="fixed inset-x-0 top-0 z-50 flex items-end justify-center"
-      style={{ height: vpHeight, background: 'rgba(0,0,0,0.75)' }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        background: '#000',
+        display: 'flex', flexDirection: 'column',
+        animation: 'cv-fade-in 0.25s',
+      }}
     >
-      <div className="w-full max-w-[420px] flex flex-col shadow-2xl"
-        style={{ background: '#0a0a0c', borderRadius: '22px 22px 0 0', borderTop: '0.5px solid #2a2a32', maxHeight: Math.round(vpHeight * 0.92) }}>
-
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-          <div className="w-10 h-1 rounded-full" style={{ background: '#2a2a32' }} />
+      {/* Header */}
+      <div style={{ padding: '60px 14px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <button
+          onClick={onBack || onCancel}
+          style={{
+            width: 40, height: 40, borderRadius: 999,
+            background: '#141418', border: '0.5px solid #2a2a32',
+            color: '#fff', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          aria-label={onBack ? 'Volver' : 'Cerrar'}
+        >
+          <CVIcon name={onBack ? 'chevL' : 'close'} size={18} />
+        </button>
+        {/* Step indicator */}
+        <div style={{ display: 'flex', gap: 5 }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{
+              width: i === stepIdx ? 20 : 6, height: 6, borderRadius: 999,
+              background: i <= stepIdx ? '#f5f5f7' : '#2a2a32',
+              transition: 'all 0.3s',
+            }} />
+          ))}
         </div>
+        {onBack ? (
+          <button
+            onClick={onCancel}
+            style={{
+              height: 40, padding: '0 12px', borderRadius: 999,
+              background: 'transparent', border: 0, color: '#a1a1aa',
+              fontSize: 14, fontWeight: 500, cursor: 'pointer',
+              fontFamily: 'var(--font-body), Inter, sans-serif',
+            }}
+          >
+            Cancelar
+          </button>
+        ) : (
+          <div style={{ width: 40 }} />
+        )}
+      </div>
 
-        {/* Header */}
-        <div className="px-5 pt-3 pb-4 flex-shrink-0" style={{ borderBottom: '0.5px solid #1f1f26' }}>
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-headline font-black text-3xl tracking-tighter uppercase text-white leading-none">
-              ¿EN QUÉ<br/><span style={{ color: 'oklch(72% 0.15 145)' }}>COLECTIVO?</span>
-            </h2>
-            <button onClick={onCancel}
-              className="w-9 h-9 rounded-full flex items-center justify-center transition"
-              style={{ background: '#1c1c22', color: '#a1a1aa' }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
+      {/* Title */}
+      <div style={{ padding: '24px 20px 16px' }}>
+        {heroLine && <div style={{ marginBottom: 12 }}><LineBadge number={heroLine} size="lg" /></div>}
+        <h1 className="font-headline" style={{
+          fontSize: 28, fontWeight: 700, margin: 0,
+          letterSpacing: -1.1, lineHeight: 1.1, color: '#fff',
+        }}>
+          {title}
+        </h1>
+        {subtitle && (
+          <p style={{ marginTop: 6, fontSize: 15, color: '#a1a1aa', letterSpacing: -0.2 }}>
+            {subtitle}
+          </p>
+        )}
+      </div>
 
-          {/* Search */}
-          <div className="relative">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#a1a1aa' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+      {children}
+    </div>
+  )
+}
+
+function ConsentItem({ icon, title, body }: { icon: 'locate' | 'shield' | 'flag'; title: string; body: string }) {
+  return (
+    <div style={{
+      display: 'flex', gap: 12, alignItems: 'flex-start',
+      padding: '12px 14px', borderRadius: 14,
+      background: '#0a0a0c', border: '0.5px solid #1f1f26',
+    }}>
+      <div style={{
+        width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+        background: 'oklch(72% 0.15 145 / 0.14)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'oklch(82% 0.12 145)',
+      }}>
+        <CVIcon name={icon} size={17} />
+      </div>
+      <div style={{ flex: 1 }}>
+        <div className="font-headline" style={{ fontSize: 14, fontWeight: 600, letterSpacing: -0.2, color: '#f5f5f7' }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 13, color: '#a1a1aa', marginTop: 2, letterSpacing: -0.1, lineHeight: 1.4 }}>
+          {body}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function LineSelector({ onConfirm, onCancel }: Props) {
+  const [step, setStep] = useState<'line' | 'branch' | 'consent'>('line')
+  const [query, setQuery] = useState('')
+  const [selectedLine, setSelectedLine] = useState<BusLine | null>(null)
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { inputRef.current?.focus() }, [step])
+
+  const filtered = useMemo(() => (query ? searchLines(query) : BUS_LINES), [query])
+
+  async function handleStart() {
+    if (!selectedLine || !selectedBranch || submitting) return
+    setSubmitting(true)
+    try {
+      await onConfirm(selectedLine, selectedBranch)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // ── Step 0: line grid ──────────────────────────────────────────
+  if (step === 'line') {
+    return (
+      <StepScreen
+        title="¿Qué línea vas a tomar?"
+        subtitle="Buscá por número o nombre."
+        onCancel={onCancel}
+        stepIdx={0}
+      >
+        <div style={{ padding: '12px 20px 0' }}>
+          <div style={{
+            height: 48, borderRadius: 14, background: '#141418',
+            border: '0.5px solid #2a2a32',
+            display: 'flex', alignItems: 'center', padding: '0 14px', gap: 10,
+          }}>
+            <CVIcon name="search" size={18} color="#a1a1aa" />
             <input
               ref={inputRef}
               type="search"
               inputMode="numeric"
-              placeholder="Número de línea (ej: 60, 109)..."
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setSelectedLine(null); setSelectedBranch(null) }}
-              className="w-full pl-11 pr-4 py-3 rounded-full text-sm text-white placeholder-gray-600 outline-none transition"
-              style={{ background: '#141418', border: '0.5px solid #2a2a32' }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = 'oklch(72% 0.15 145)')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = '#2a2a32')}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ej: 60, 152, 29..."
+              style={{
+                flex: 1, background: 'transparent', border: 0, outline: 'none',
+                color: '#f5f5f7', fontSize: 16,
+                fontFamily: 'var(--font-body), Inter, sans-serif',
+                letterSpacing: -0.2,
+              }}
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                style={{ background: 'transparent', border: 0, color: '#6b6b75', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                aria-label="Limpiar"
+              >
+                <CVIcon name="close" size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="cv-scroll" style={{ padding: '16px 20px 0', flex: 1, overflowY: 'auto' }}>
+          <div style={{
+            fontSize: 12, fontWeight: 600, color: '#a1a1aa',
+            letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 8,
+          }}>
+            {query ? 'Resultados' : 'Todas las líneas'}
+          </div>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: '#a1a1aa', fontSize: 14 }}>
+              No se encontró ninguna línea
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {filtered.map((line) => (
+                <button
+                  key={line.number}
+                  onClick={() => {
+                    setSelectedLine(line)
+                    if (line.branches.length === 1) {
+                      setSelectedBranch(line.branches[0])
+                      setStep('consent')
+                    } else {
+                      setStep('branch')
+                    }
+                  }}
+                  style={{
+                    aspectRatio: '1', borderRadius: 14,
+                    background: '#141418', border: '0.5px solid #1f1f26',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center', gap: 4,
+                    cursor: 'pointer', color: '#fff', padding: 4,
+                  }}
+                >
+                  <LineBadge number={line.number} size="md" />
+                  <div style={{ fontSize: 10, color: '#6b6b75', marginTop: 2 }}>
+                    {line.branches.length} {line.branches.length === 1 ? 'ramal' : 'ramales'}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+          <div style={{ height: 24 }} />
+        </div>
+      </StepScreen>
+    )
+  }
+
+  // ── Step 1: branch cards ───────────────────────────────────────
+  if (step === 'branch' && selectedLine) {
+    return (
+      <StepScreen
+        title={`Línea ${selectedLine.number}`}
+        subtitle="Elegí el ramal que estás tomando."
+        onCancel={onCancel}
+        onBack={() => setStep('line')}
+        stepIdx={1}
+        heroLine={selectedLine.number}
+      >
+        <div className="cv-scroll" style={{ padding: '12px 20px 0', flex: 1, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {selectedLine.branches.map((b) => {
+              const letter = (b.id.split('-')[1] ?? '·').toUpperCase()
+              const shortName = b.name.split(' - ')[1] || b.name
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => {
+                    setSelectedBranch(b)
+                    setStep('consent')
+                  }}
+                  style={{
+                    padding: '14px 16px', borderRadius: 14,
+                    background: '#141418', border: '0.5px solid #1f1f26',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    cursor: 'pointer', color: '#fff', textAlign: 'left',
+                  }}
+                >
+                  <div
+                    className="font-headline"
+                    style={{
+                      width: 34, height: 34, borderRadius: 999,
+                      background: '#1c1c22',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 15, fontWeight: 700, color: '#f5f5f7',
+                    }}
+                  >
+                    {letter}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      className="font-headline"
+                      style={{
+                        fontSize: 15, fontWeight: 600, letterSpacing: -0.3,
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {shortName}
+                    </div>
+                  </div>
+                  <CVIcon name="chevR" size={16} color="#6b6b75" />
+                </button>
+              )
+            })}
+          </div>
+          <div style={{ height: 24 }} />
+        </div>
+      </StepScreen>
+    )
+  }
+
+  // ── Step 2: consent ────────────────────────────────────────────
+  if (step === 'consent' && selectedLine && selectedBranch) {
+    return (
+      <StepScreen
+        title="Antes de empezar"
+        subtitle={null}
+        onCancel={onCancel}
+        onBack={() => setStep(selectedLine.branches.length === 1 ? 'line' : 'branch')}
+        stepIdx={2}
+        heroLine={selectedLine.number}
+      >
+        <div style={{ padding: '8px 20px 0' }}>
+          <div style={{
+            padding: '14px 16px', borderRadius: 14,
+            background: '#141418', border: '0.5px solid #1f1f26',
+            marginBottom: 14,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <LineBadge number={selectedLine.number} size="lg" />
+              <div style={{ flex: 1 }}>
+                <div className="font-headline" style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, color: '#f5f5f7' }}>
+                  {selectedBranch.name}
+                </div>
+                <div style={{ fontSize: 12, color: '#a1a1aa', marginTop: 1 }}>
+                  Vas a compartir este viaje
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <ConsentItem
+              icon="locate"
+              title="Ubicación en vivo"
+              body="Mientras compartís, mostramos tu ubicación anónima en el mapa para otros pasajeros."
+            />
+            <ConsentItem
+              icon="shield"
+              title="Sin datos personales"
+              body="Nadie ve tu nombre, email ni dispositivo. Solo el punto en el mapa."
+            />
+            <ConsentItem
+              icon="flag"
+              title="Terminás cuando querés"
+              body="Podés finalizar el viaje en cualquier momento. Se frena automáticamente si bajás del bondi."
             />
           </div>
         </div>
 
-        {/* Lista de líneas */}
-        {!selectedLine && (
-          <ul className="overflow-y-auto flex-1">
-            {filtered.length === 0 && (
-              <li className="px-5 py-10 text-center text-sm" style={{ color: '#a1a1aa' }}>
-                No se encontró ninguna línea
-              </li>
-            )}
-            {filtered.map((line) => (
-              <li key={line.number} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                <button
-                  onClick={() => setSelectedLine(line)}
-                  className="w-full flex items-center gap-4 px-5 py-4 text-left transition"
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'oklch(72% 0.15 145 / 0.06)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <span className="font-headline font-black text-3xl tracking-tighter leading-none flex-shrink-0 w-14 text-right"
-                    style={{ color: '#ffffff' }}>
-                    {line.number}
-                  </span>
-                  <div className="min-w-0 flex-1" style={{ borderLeft: '2px solid #1f1f26', paddingLeft: '16px' }}>
-                    <span className="text-sm text-white font-bold font-headline uppercase tracking-tight">{line.name}</span>
-                    <p className="text-xs mt-0.5 truncate" style={{ color: '#a1a1aa' }}>
-                      {line.branches.length} ramal{line.branches.length !== 1 ? 'es' : ''}
-                    </p>
-                  </div>
-                  <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#a1a1aa' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div style={{ flex: 1 }} />
 
-        {/* Lista de ramales */}
-        {selectedLine && !selectedBranch && (
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <button
-              onClick={() => setSelectedLine(null)}
-              className="flex items-center gap-2 px-5 py-3.5 text-sm transition flex-shrink-0 font-headline font-bold uppercase"
-              style={{ color: 'oklch(85% 0.13 145)', borderBottom: '0.5px solid #1f1f26' }}
-            >
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Línea {selectedLine.number}
-            </button>
-            <p className="px-5 py-2 text-xs uppercase font-headline font-bold tracking-widest" style={{ color: '#a1a1aa' }}>Seleccioná el ramal:</p>
-            <ul className="overflow-y-auto flex-1">
-              {selectedLine.branches.map((branch) => (
-                <li key={branch.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                  <button
-                    onClick={() => setSelectedBranch(branch)}
-                    className="w-full flex items-center gap-3 px-5 py-4 text-left transition"
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'oklch(72% 0.15 145 / 0.06)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'oklch(72% 0.15 145 / 0.12)', border: '0.5px solid oklch(72% 0.15 145 / 0.3)' }}>
-                      <svg className="w-4 h-4" style={{ color: 'oklch(72% 0.15 145)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-white font-medium">{branch.name}</span>
-                    <svg className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: '#a1a1aa' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div style={{ padding: '16px 20px 20px' }}>
+          <button
+            onClick={handleStart}
+            disabled={submitting}
+            className="font-headline"
+            style={{
+              width: '100%', height: 56, borderRadius: 16,
+              background: submitting ? '#2a2a32' : 'oklch(72% 0.15 145)',
+              color: submitting ? '#a1a1aa' : '#001b0a',
+              border: 0,
+              cursor: submitting ? 'wait' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              fontSize: 17, fontWeight: 700, letterSpacing: -0.3,
+              boxShadow: submitting ? 'none' : '0 4px 14px oklch(72% 0.15 145 / 0.4)',
+            }}
+          >
+            {!submitting && <span className="cv-dot-live" style={{ background: '#001b0a' }} />}
+            {submitting ? 'Iniciando…' : 'Empezar a compartir'}
+          </button>
+          <p style={{
+            marginTop: 12, fontSize: 12, color: '#6b6b75', textAlign: 'center',
+            letterSpacing: -0.1, lineHeight: 1.4,
+          }}>
+            Podés cambiar estos permisos en Ajustes →<br />Privacidad en cualquier momento.
+          </p>
+        </div>
+      </StepScreen>
+    )
+  }
 
-        {/* Confirmación */}
-        {selectedLine && selectedBranch && (
-          <div className="px-5 py-5 flex-shrink-0" style={{ borderTop: '0.5px solid #1f1f26' }}>
-            <div className="rounded-[14px] p-4 mb-4 flex items-center gap-3"
-              style={{ background: 'oklch(72% 0.15 145 / 0.12)', border: '0.5px solid oklch(72% 0.15 145 / 0.3)' }}>
-              <span className="flex items-center justify-center w-12 h-12 rounded-xl font-headline font-black text-xl text-black flex-shrink-0"
-                style={{ background: 'oklch(72% 0.15 145)' }}>
-                {selectedLine.number}
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-headline font-bold uppercase tracking-widest mb-0.5" style={{ color: 'oklch(85% 0.13 145)' }}>Seleccionado</p>
-                <p className="text-sm text-white font-semibold truncate">{selectedBranch.name}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleConfirm}
-              className="w-full py-4 rounded-full text-sm font-headline font-bold text-black uppercase tracking-tight transition"
-              style={{ background: 'oklch(72% 0.15 145)', color: '#001b0a', boxShadow: '0 4px 14px oklch(72% 0.15 145 / 0.4)' }}
-            >
-              Estoy en este colectivo
-            </button>
-            <button
-              onClick={() => setSelectedBranch(null)}
-              className="w-full mt-2 py-2 text-sm transition"
-              style={{ color: '#a1a1aa' }}
-            >
-              Cambiar ramal
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+  return null
 }
